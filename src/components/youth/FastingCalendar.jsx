@@ -160,45 +160,31 @@ export const FastingCalendar = ({ assignments = [], loading = false }) => {
                 </div>
             </div>
 
-            {/* Mobile Scroll Hint */}
-            <div className="lg:hidden px-4 py-2 bg-blue-50/50 border-b border-gray-100 flex items-center justify-center gap-2">
-                <div className="flex gap-1">
-                    <div className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"></div>
-                    <div className="w-1.5 h-1.5 rounded-full bg-blue-300 animate-pulse delay-75"></div>
-                    <div className="w-1.5 h-1.5 rounded-full bg-blue-200 animate-pulse delay-150"></div>
-                </div>
-                <span className="text-[10px] font-bold text-blue-600 uppercase tracking-widest">Desliza para ver más días</span>
-                <div className="flex gap-1 hover:">
-                    <div className="w-1.5 h-1.5 rounded-full bg-blue-200 animate-pulse"></div>
-                    <div className="w-1.5 h-1.5 rounded-full bg-blue-300 animate-pulse delay-75"></div>
-                    <div className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse delay-150"></div>
-                </div>
-            </div>
-
-            {/* Calendar Grid to Capture */}
-            <div className="overflow-x-auto pb-4 custom-scrollbar touch-pan-x" style={{ WebkitOverflowScrolling: 'touch' }}>
+            {/* Calendar Grid Container */}
+            <div className="bg-white">
                 <div
                     ref={calendarRef}
                     id="fasting-calendar-export"
-                    className="p-4 md:p-6 w-full min-w-[750px] lg:min-w-full"
+                    className="p-1 sm:p-4 md:p-6 w-full"
                     style={{ backgroundColor: '#ffffff' }}
                 >
-                    <div className="text-center mb-6">
-                        <h1 className="text-xl sm:text-3xl font-bold capitalize mb-1" style={{ color: '#111827' }}>
+                    <div className="text-center mb-4 sm:mb-6">
+                        <h1 className="text-lg sm:text-3xl font-bold capitalize mb-0 sm:mb-1" style={{ color: '#111827' }}>
                             Ayuno de {format(currentDate, 'MMMM yyyy', { locale: es })}
                         </h1>
-                        <p className="text-sm" style={{ color: '#6b7280' }}>Ministerio de Jóvenes</p>
+                        <p className="text-[10px] sm:text-sm" style={{ color: '#6b7280' }}>Ministerio de Jóvenes</p>
                     </div>
 
-                    <div className="grid grid-cols-7 rounded-t-xl overflow-hidden" style={{ borderColor: '#e5e7eb', borderWidth: '1px', borderStyle: 'solid' }}>
+                    <div className="grid grid-cols-7 rounded-t-lg sm:rounded-t-xl overflow-hidden border-t border-l border-r" style={{ borderColor: '#e5e7eb' }}>
                         {weekDays.map(day => (
-                            <div key={day} className="py-3 text-center text-xs font-bold uppercase tracking-wider last:border-r-0" style={{ backgroundColor: '#fff7ed', color: '#9a3412', borderRight: '1px solid #e5e7eb' }}>
-                                {day}
+                            <div key={day} className="py-2 sm:py-3 text-center text-[10px] sm:text-xs font-bold uppercase tracking-wider border-r last:border-r-0" style={{ backgroundColor: '#fff7ed', color: '#9a3412', borderColor: '#e5e7eb' }}>
+                                <span className="hidden sm:inline">{day}</span>
+                                <span className="sm:hidden">{day.substring(0, 1)}</span>
                             </div>
                         ))}
                     </div>
 
-                    <div className="grid grid-cols-7 border-l border-b" style={{ borderColor: '#e5e7eb' }}>
+                    <div className="grid grid-cols-7 border-l border-b border-r" style={{ borderColor: '#e5e7eb' }}>
                         {calendarDays.map((day, idx) => {
                             const dayAssignments = getAssignmentsForDay(day);
                             const isCurrentMonth = isSameMonth(day, monthStart);
@@ -207,14 +193,14 @@ export const FastingCalendar = ({ assignments = [], loading = false }) => {
                             return (
                                 <div
                                     key={day.toString()}
-                                    className="min-h-[120px] p-2 border-r border-b relative"
+                                    className="min-h-[60px] sm:min-h-[120px] p-1 sm:p-2 border-r border-b last:border-r-0 relative"
                                     style={{
                                         borderColor: '#e5e7eb',
                                         backgroundColor: !isCurrentMonth ? '#f9fafb' : '#ffffff'
                                     }}
                                 >
                                     <span
-                                        className={`text-sm font-medium block mb-2 ${isTodayDate ? 'w-6 h-6 rounded-full flex items-center justify-center' : ''}`}
+                                        className={`text-[10px] sm:text-sm font-medium block mb-1 sm:mb-2 ${isTodayDate ? 'w-4 h-4 sm:w-6 sm:h-6 rounded-full flex items-center justify-center mx-auto sm:mx-0' : ''}`}
                                         style={{
                                             backgroundColor: isTodayDate ? '#2563eb' : 'transparent',
                                             color: isTodayDate ? '#ffffff' : (!isCurrentMonth ? '#9ca3af' : '#374151')
@@ -223,18 +209,18 @@ export const FastingCalendar = ({ assignments = [], loading = false }) => {
                                         {format(day, 'd')}
                                     </span>
 
-                                    <div className="space-y-1">
+                                    <div className="space-y-0.5 sm:space-y-1">
                                         {dayAssignments.map((assign, i) => (
                                             <div
                                                 key={`${assign.id}-${i}`}
-                                                className="text-xs p-1.5 rounded border leading-tight"
+                                                className="text-[8px] sm:text-xs p-0.5 sm:p-1.5 rounded border leading-none sm:leading-tight"
                                                 style={{
                                                     backgroundColor: '#fff7ed',
                                                     color: '#7c2d12',
                                                     borderColor: '#ffedd5'
                                                 }}
                                             >
-                                                <span className="font-semibold block truncate">
+                                                <span className="font-semibold block truncate sm:whitespace-normal">
                                                     {assign.nombre}
                                                 </span>
                                             </div>
