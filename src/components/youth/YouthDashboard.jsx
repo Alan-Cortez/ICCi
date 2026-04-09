@@ -233,7 +233,7 @@ export const YouthDashboard = ({ ministryId, setActiveTab }) => {
             </div>
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                 <StatCard
                     icon={Users}
                     label="Total Jóvenes"
@@ -279,7 +279,7 @@ export const YouthDashboard = ({ ministryId, setActiveTab }) => {
                     className="rounded-2xl shadow-sm border p-6 animate-in slide-in-from-bottom-2 relative"
                     style={{ backgroundColor: '#ffffff', borderColor: '#f3f4f6' }}
                 >
-                    <div className="flex items-center justify-between mb-4">
+                    <div className="flex flex-col sm:flex-row items-center justify-between mb-4 gap-4">
                         <div className="flex items-center gap-2">
                             <Mic2 className="w-6 h-6" style={{ color: '#4f46e5' }} />
                             <h2 className="text-xl font-bold" style={{ color: '#111827' }}>Próximas Asignaciones</h2>

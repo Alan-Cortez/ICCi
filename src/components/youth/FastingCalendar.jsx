@@ -115,7 +115,7 @@ export const FastingCalendar = ({ assignments = [], loading = false }) => {
     }
 
     return (
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
             {/* Header controls - Not included in screenshot unless we capture parent. 
                 We will capture `calendarRef` which usually allows specific capture. 
                 Let's include the header in the capture for context. 
@@ -163,69 +163,69 @@ export const FastingCalendar = ({ assignments = [], loading = false }) => {
                 <div
                     ref={calendarRef}
                     id="fasting-calendar-export"
-                    className="p-4 md:p-6 min-w-[800px] lg:min-w-full"
+                    className="p-4 md:p-6 min-w-[750px] lg:min-w-full"
                     style={{ backgroundColor: '#ffffff' }}
                 >
-                <div className="text-center mb-6">
-                    <h1 className="text-3xl font-bold capitalize mb-1" style={{ color: '#111827' }}>
-                        Ayuno de {format(currentDate, 'MMMM yyyy', { locale: es })}
-                    </h1>
-                    <p className="text-sm" style={{ color: '#6b7280' }}>Ministerio de Jóvenes</p>
-                </div>
+                    <div className="text-center mb-6">
+                        <h1 className="text-3xl font-bold capitalize mb-1" style={{ color: '#111827' }}>
+                            Ayuno de {format(currentDate, 'MMMM yyyy', { locale: es })}
+                        </h1>
+                        <p className="text-sm" style={{ color: '#6b7280' }}>Ministerio de Jóvenes</p>
+                    </div>
 
-                <div className="grid grid-cols-7 rounded-t-xl overflow-hidden" style={{ borderColor: '#e5e7eb', borderWidth: '1px', borderStyle: 'solid' }}>
-                    {weekDays.map(day => (
-                        <div key={day} className="py-3 text-center text-xs font-bold uppercase tracking-wider last:border-r-0" style={{ backgroundColor: '#fff7ed', color: '#9a3412', borderRight: '1px solid #e5e7eb' }}>
-                            {day}
-                        </div>
-                    ))}
-                </div>
+                    <div className="grid grid-cols-7 rounded-t-xl overflow-hidden" style={{ borderColor: '#e5e7eb', borderWidth: '1px', borderStyle: 'solid' }}>
+                        {weekDays.map(day => (
+                            <div key={day} className="py-3 text-center text-xs font-bold uppercase tracking-wider last:border-r-0" style={{ backgroundColor: '#fff7ed', color: '#9a3412', borderRight: '1px solid #e5e7eb' }}>
+                                {day}
+                            </div>
+                        ))}
+                    </div>
 
-                <div className="grid grid-cols-7 border-l border-b" style={{ borderColor: '#e5e7eb' }}>
-                    {calendarDays.map((day, idx) => {
-                        const dayAssignments = getAssignmentsForDay(day);
-                        const isCurrentMonth = isSameMonth(day, monthStart);
-                        const isTodayDate = isToday(day);
+                    <div className="grid grid-cols-7 border-l border-b" style={{ borderColor: '#e5e7eb' }}>
+                        {calendarDays.map((day, idx) => {
+                            const dayAssignments = getAssignmentsForDay(day);
+                            const isCurrentMonth = isSameMonth(day, monthStart);
+                            const isTodayDate = isToday(day);
 
-                        return (
-                            <div
-                                key={day.toString()}
-                                className="min-h-[120px] p-2 border-r border-b relative"
-                                style={{
-                                    borderColor: '#e5e7eb',
-                                    backgroundColor: !isCurrentMonth ? '#f9fafb' : '#ffffff'
-                                }}
-                            >
-                                <span
-                                    className={`text-sm font-medium block mb-2 ${isTodayDate ? 'w-6 h-6 rounded-full flex items-center justify-center' : ''}`}
+                            return (
+                                <div
+                                    key={day.toString()}
+                                    className="min-h-[120px] p-2 border-r border-b relative"
                                     style={{
-                                        backgroundColor: isTodayDate ? '#2563eb' : 'transparent',
-                                        color: isTodayDate ? '#ffffff' : (!isCurrentMonth ? '#9ca3af' : '#374151')
+                                        borderColor: '#e5e7eb',
+                                        backgroundColor: !isCurrentMonth ? '#f9fafb' : '#ffffff'
                                     }}
                                 >
-                                    {format(day, 'd')}
-                                </span>
+                                    <span
+                                        className={`text-sm font-medium block mb-2 ${isTodayDate ? 'w-6 h-6 rounded-full flex items-center justify-center' : ''}`}
+                                        style={{
+                                            backgroundColor: isTodayDate ? '#2563eb' : 'transparent',
+                                            color: isTodayDate ? '#ffffff' : (!isCurrentMonth ? '#9ca3af' : '#374151')
+                                        }}
+                                    >
+                                        {format(day, 'd')}
+                                    </span>
 
-                                <div className="space-y-1">
-                                    {dayAssignments.map((assign, i) => (
-                                        <div
-                                            key={`${assign.id}-${i}`}
-                                            className="text-xs p-1.5 rounded border leading-tight"
-                                            style={{
-                                                backgroundColor: '#fff7ed',
-                                                color: '#7c2d12',
-                                                borderColor: '#ffedd5'
-                                            }}
-                                        >
-                                            <span className="font-semibold block truncate">
-                                                {assign.nombre}
-                                            </span>
-                                        </div>
-                                    ))}
+                                    <div className="space-y-1">
+                                        {dayAssignments.map((assign, i) => (
+                                            <div
+                                                key={`${assign.id}-${i}`}
+                                                className="text-xs p-1.5 rounded border leading-tight"
+                                                style={{
+                                                    backgroundColor: '#fff7ed',
+                                                    color: '#7c2d12',
+                                                    borderColor: '#ffedd5'
+                                                }}
+                                            >
+                                                <span className="font-semibold block truncate">
+                                                    {assign.nombre}
+                                                </span>
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
-                            </div>
-                        );
-                    })}
+                            );
+                        })}
                     </div>
                 </div>
             </div>
