@@ -159,12 +159,13 @@ export const FastingCalendar = ({ assignments = [], loading = false }) => {
             </div>
 
             {/* Calendar Grid to Capture */}
-            <div
-                ref={calendarRef}
-                id="fasting-calendar-export"
-                className="p-6 min-w-[800px] md:min-w-full"
-                style={{ backgroundColor: '#ffffff' }}
-            >
+            <div className="overflow-x-auto pb-4 custom-scrollbar">
+                <div
+                    ref={calendarRef}
+                    id="fasting-calendar-export"
+                    className="p-4 md:p-6 min-w-[800px] lg:min-w-full"
+                    style={{ backgroundColor: '#ffffff' }}
+                >
                 <div className="text-center mb-6">
                     <h1 className="text-3xl font-bold capitalize mb-1" style={{ color: '#111827' }}>
                         Ayuno de {format(currentDate, 'MMMM yyyy', { locale: es })}
@@ -225,6 +226,7 @@ export const FastingCalendar = ({ assignments = [], loading = false }) => {
                             </div>
                         );
                     })}
+                    </div>
                 </div>
             </div>
         </div>

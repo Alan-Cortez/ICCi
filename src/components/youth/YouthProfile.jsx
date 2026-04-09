@@ -7,6 +7,7 @@ import { getNotesByYouth, addNote, deleteNote } from '../../services/noteService
 import { calculateAttendancePercentage, calculateBibleCompliance, calculateNotesCompliance, calculatePunctuality } from '../../utils/reportHelpers';
 import { formatDate, getToday } from '../../utils/dateHelpers';
 import { exportYouthProfileToPDF } from '../../utils/pdfExport';
+import { exportYouthProfileToExcel } from '../../utils/excelExport';
 
 export const YouthProfile = ({ youthMember, onClose, onEdit }) => {
     const [activeTab, setActiveTab] = useState('info');
@@ -123,6 +124,22 @@ export const YouthProfile = ({ youthMember, onClose, onEdit }) => {
         };
 
         exportYouthProfileToPDF(
+            youthData,
+            attendanceData,
+            complianceData,
+            stats
+        );
+    };
+
+    const handleExportExcel = () => {
+        if (!memberData) return;
+
+        const youthData = {
+            ...memberData,
+            ...youthMember
+        };
+
+        exportYouthProfileToExcel(
             youthData,
             attendanceData,
             complianceData,
@@ -439,13 +456,22 @@ export const YouthProfile = ({ youthMember, onClose, onEdit }) => {
                     >
                         Cerrar
                     </button>
-                    <button
-                        onClick={handleExportPDF}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-bold shadow-lg shadow-blue-200 hover:shadow-blue-300 transition-all flex items-center gap-2 transform active:scale-95"
-                    >
-                        <Download className="w-5 h-5" />
-                        Exportar PDF
-                    </button>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={handleExportExcel}
+                            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2.5 rounded-xl font-bold shadow-lg shadow-green-200 hover:shadow-green-300 transition-all flex items-center gap-2 transform active:scale-95"
+                        >
+                            <Download className="w-5 h-5" />
+                            Excel
+                        </button>
+                        <button
+                            onClick={handleExportPDF}
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl font-bold shadow-lg shadow-blue-200 hover:shadow-blue-300 transition-all flex items-center gap-2 transform active:scale-95"
+                        >
+                            <Download className="w-5 h-5" />
+                            PDF
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

@@ -7,6 +7,9 @@ import { Events } from '../components/youth/Events';
 import { Funds } from '../components/youth/Funds';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-toastify';
+import { exportMemberListToPDF } from '../utils/pdfExport';
+import { exportMemberListToExcel } from '../utils/excelExport';
+import { Download, FileSpreadsheet } from 'lucide-react';
 
 export const MinistryDetail = () => {
     const { id } = useParams();
@@ -136,6 +139,13 @@ export const MinistryDetail = () => {
                             Fondos
                             {activeTab === 'funds' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 rounded-t-full" />}
                         </button>
+                        <button
+                            onClick={() => setActiveTab('reports')}
+                            className={`pb-3 font-medium text-sm transition-colors relative ${activeTab === 'reports' ? 'text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+                        >
+                            Reportes
+                            {activeTab === 'reports' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 rounded-t-full" />}
+                        </button>
                     </div>
                 </div>
             </div>
@@ -180,6 +190,54 @@ export const MinistryDetail = () => {
 
                 {activeTab === 'funds' && (
                     <Funds ministryId={id} />
+                )}
+
+                {activeTab === 'reports' && (
+                    <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 animate-in fade-in">
+                        <div className="text-center mb-8">
+                            <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <Download className="w-8 h-8" />
+                            </div>
+                            <h3 className="text-xl font-bold text-gray-900">Centro de Descargas</h3>
+                            <p className="text-gray-500">Obtén reportes detallados de tu ministerio en diferentes formatos.</p>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {/* Member List Report */}
+                            <div className="p-6 border border-gray-100 rounded-2xl hover:bg-gray-50 transition-all border-l-4 border-l-blue-500">
+                                <h4 className="font-bold text-gray-900 mb-2">Lista de Miembros</h4>
+                                <p className="text-sm text-gray-500 mb-4">Exporta la lista completa de miembros activos de este ministerio.</p>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => exportMemberListToPDF(members, `Miembros - ${ministry.nombre}`)}
+                                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-xl text-sm font-bold hover:bg-red-100 transition-colors"
+                                    >
+                                        <Download className="w-4 h-4" /> PDF
+                                    </button>
+                                    <button
+                                        onClick={() => exportMemberListToExcel(members, `Miembros - ${ministry.nombre}`)}
+                                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-green-50 text-green-600 rounded-xl text-sm font-bold hover:bg-green-100 transition-colors"
+                                    >
+                                        <FileSpreadsheet className="w-4 h-4" /> Excel
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Attendance Report Placeholder or Future feature */}
+                            <div className="p-6 border border-gray-100 rounded-2xl hover:bg-gray-50 transition-all border-l-4 border-l-purple-500">
+                                <h4 className="font-bold text-gray-900 mb-2">Reporte de Eventos</h4>
+                                <p className="text-sm text-gray-500 mb-4">Exporta el historial de eventos realizados y próximos de tu ministerio.</p>
+                                <div className="flex gap-2">
+                                    <button
+                                        disabled
+                                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-gray-50 text-gray-400 rounded-xl text-sm font-bold cursor-not-allowed"
+                                    >
+                                        Próximamente
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 )}
             </div>
 

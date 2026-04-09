@@ -287,7 +287,7 @@ export const Reports = ({ ministryId }) => { // Accept ministryId prop
                 </div>
             </div>
 
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                 {reportData?.youthReports.map((youth, index) => (
                     <div key={index} className="flex flex-col md:flex-row justify-between p-5 border border-gray-100 rounded-xl hover:bg-gray-50 transition-all gap-4 shadow-sm">
                         <div className="flex-1 min-w-0">

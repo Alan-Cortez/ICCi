@@ -186,3 +186,44 @@ export const exportYouthProfileToExcel = (youth, attendanceRecords, complianceRe
     const blob = new Blob([wbout], { type: 'application/octet-stream' });
     saveAs(blob, `${youth.nombre}_${youth.apellido_paterno}_perfil.xlsx`);
 };
+
+/**
+ * Exporta una lista de miembros general a Excel
+ */
+export const exportMemberListToExcel = (memberList, title = 'Lista de Miembros') => {
+    const wb = XLSX.utils.book_new();
+
+    const tableData = [
+        [title.toUpperCase()],
+        [`Generado el ${formatDate(new Date().toISOString().split('T')[0])}`],
+        [],
+        ['Nombre', 'Apellido Paterno', 'Apellido Materno', 'Teléfono', 'Género', 'Cumpleaños']
+    ];
+
+    memberList.forEach(m => {
+        tableData.push([
+            m.nombre,
+            m.apellido_paterno,
+            m.apellido_materno || '',
+            m.telefono || 'N/A',
+            m.genero === 'M' ? 'Masculino' : 'Femenino',
+            m.fecha_nacimiento ? formatDate(m.fecha_nacimiento) : 'N/A'
+        ]);
+    });
+
+    const ws = XLSX.utils.aoa_to_sheet(tableData);
+    ws['!cols'] = [
+        { wch: 20 },
+        { wch: 20 },
+        { wch: 20 },
+        { wch: 15 },
+        { wch: 12 },
+        { wch: 15 }
+    ];
+
+    XLSX.utils.book_append_sheet(wb, ws, 'Miembros');
+
+    const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+    const blob = new Blob([wbout], { type: 'application/octet-stream' });
+    saveAs(blob, `${title.replace(/\s+/g, '_').toLowerCase()}.xlsx`);
+};

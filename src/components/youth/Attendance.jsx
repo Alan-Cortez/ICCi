@@ -552,17 +552,17 @@ export const Attendance = () => {
 
                     {!isCancelled && (
                         <div className="grid grid-cols-3 gap-2 text-center">
-                            <div className="bg-green-50 rounded-lg p-2 border border-green-100">
-                                <div className="text-xl font-bold text-green-700">{presentCount}</div>
-                                <div className="text-[10px] uppercase font-bold text-green-500">Presentes</div>
+                            <div className="bg-green-50 rounded-xl p-2 border border-green-100 shadow-sm">
+                                <div className="text-xl md:text-2xl font-black text-green-700">{presentCount}</div>
+                                <div className="text-[10px] md:text-xs uppercase font-bold text-green-500">Presentes</div>
                             </div>
-                            <div className="bg-yellow-50 rounded-lg p-2 border border-yellow-100">
-                                <div className="text-xl font-bold text-yellow-700">{justifiedCount}</div>
-                                <div className="text-[10px] uppercase font-bold text-yellow-500">Justif.</div>
+                            <div className="bg-yellow-50 rounded-xl p-2 border border-yellow-100 shadow-sm">
+                                <div className="text-xl md:text-2xl font-black text-yellow-700">{justifiedCount}</div>
+                                <div className="text-[10px] md:text-xs uppercase font-bold text-yellow-500">Justif.</div>
                             </div>
-                            <div className="bg-red-50 rounded-lg p-2 border border-red-100">
-                                <div className="text-xl font-bold text-red-700">{absentCount}</div>
-                                <div className="text-[10px] uppercase font-bold text-red-500">Ausentes</div>
+                            <div className="bg-red-50 rounded-xl p-2 border border-red-100 shadow-sm">
+                                <div className="text-xl md:text-2xl font-black text-red-700">{absentCount}</div>
+                                <div className="text-[10px] md:text-xs uppercase font-bold text-red-500">Ausentes</div>
                             </div>
                         </div>
                     )}

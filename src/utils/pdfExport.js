@@ -208,3 +208,44 @@ export const exportGroupReportToPDF = (youthList, startDate, endDate, title = 'R
     // Descargar
     doc.save(`reporte_grupal_${startDate}_${endDate}.pdf`);
 };
+
+/**
+ * Exporta una lista de miembros general a PDF
+ */
+export const exportMemberListToPDF = (memberList, title = 'Lista de Miembros') => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.width;
+
+    // Header
+    doc.setFillColor(59, 130, 246);
+    doc.rect(0, 0, pageWidth, 40, 'F');
+
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(20);
+    doc.setFont(undefined, 'bold');
+    doc.text(title, pageWidth / 2, 15, { align: 'center' });
+
+    doc.setFontSize(12);
+    doc.setFont(undefined, 'normal');
+    doc.text(`Generado el ${formatDate(new Date().toISOString().split('T')[0])}`, pageWidth / 2, 28, { align: 'center' });
+
+    doc.setTextColor(0, 0, 0);
+
+    const tableData = memberList.map(m => [
+        `${m.nombre} ${m.apellido_paterno} ${m.apellido_materno || ''}`,
+        m.telefono || 'N/A',
+        m.genero === 'M' ? 'Masc' : 'Fem',
+        m.fecha_nacimiento ? formatDate(m.fecha_nacimiento) : 'N/A'
+    ]);
+
+    doc.autoTable({
+        startY: 50,
+        head: [['Nombre Completo', 'Teléfono', 'Género', 'Cumpleaños']],
+        body: tableData,
+        theme: 'grid',
+        headStyles: { fillColor: [59, 130, 246] },
+        margin: { left: 14, right: 14 }
+    });
+
+    doc.save(`${title.replace(/\s+/g, '_').toLowerCase()}.pdf`);
+};
