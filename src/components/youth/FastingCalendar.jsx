@@ -123,7 +123,9 @@ export const FastingCalendar = ({ assignments = [], loading = false }) => {
             <div className="p-4 border-b border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div className="flex items-center gap-2">
                     <CalendarIcon className="w-5 h-5 text-blue-600" />
-                    <h2 className="text-lg font-bold text-gray-900">Calendario de Ayuno</h2>
+                    <h2 className="text-sm sm:text-lg font-bold text-gray-900 truncate max-w-[120px] sm:max-w-none">
+                        Calendario de Ayuno
+                    </h2>
                 </div>
 
                 <div className="flex items-center gap-2">
