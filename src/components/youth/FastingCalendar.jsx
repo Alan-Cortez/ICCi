@@ -158,12 +158,27 @@ export const FastingCalendar = ({ assignments = [], loading = false }) => {
                 </div>
             </div>
 
+            {/* Mobile Scroll Hint */}
+            <div className="lg:hidden px-4 py-2 bg-blue-50/50 border-b border-gray-100 flex items-center justify-center gap-2">
+                <div className="flex gap-1">
+                    <div className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"></div>
+                    <div className="w-1.5 h-1.5 rounded-full bg-blue-300 animate-pulse delay-75"></div>
+                    <div className="w-1.5 h-1.5 rounded-full bg-blue-200 animate-pulse delay-150"></div>
+                </div>
+                <span className="text-[10px] font-bold text-blue-600 uppercase tracking-widest">Desliza para ver más días</span>
+                <div className="flex gap-1 hover:">
+                    <div className="w-1.5 h-1.5 rounded-full bg-blue-200 animate-pulse"></div>
+                    <div className="w-1.5 h-1.5 rounded-full bg-blue-300 animate-pulse delay-75"></div>
+                    <div className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse delay-150"></div>
+                </div>
+            </div>
+
             {/* Calendar Grid to Capture */}
-            <div className="overflow-x-auto pb-4 custom-scrollbar">
+            <div className="overflow-x-auto pb-4 custom-scrollbar touch-pan-x" style={{ WebkitOverflowScrolling: 'touch' }}>
                 <div
                     ref={calendarRef}
                     id="fasting-calendar-export"
-                    className="p-4 md:p-6 min-w-[750px] lg:min-w-full"
+                    className="p-4 md:p-6 w-full min-w-[750px] lg:min-w-full"
                     style={{ backgroundColor: '#ffffff' }}
                 >
                     <div className="text-center mb-6">
