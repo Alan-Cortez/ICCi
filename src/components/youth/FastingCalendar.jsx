@@ -120,7 +120,7 @@ export const FastingCalendar = ({ assignments = [], loading = false }) => {
                 We will capture `calendarRef` which usually allows specific capture. 
                 Let's include the header in the capture for context. 
             */}
-            <div className="p-4 border-b border-gray-100 flex items-center justify-between">
+            <div className="p-4 border-b border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div className="flex items-center gap-2">
                     <CalendarIcon className="w-5 h-5 text-blue-600" />
                     <h2 className="text-lg font-bold text-gray-900">Calendario de Ayuno</h2>
@@ -134,7 +134,7 @@ export const FastingCalendar = ({ assignments = [], loading = false }) => {
                     >
                         <ChevronLeft className="w-5 h-5" />
                     </button>
-                    <span className="text-sm font-semibold w-32 text-center capitalize">
+                    <span className="text-xs font-semibold w-24 text-center capitalize">
                         {format(currentDate, 'MMMM yyyy', { locale: es })}
                     </span>
                     <button
@@ -167,7 +167,7 @@ export const FastingCalendar = ({ assignments = [], loading = false }) => {
                     style={{ backgroundColor: '#ffffff' }}
                 >
                     <div className="text-center mb-6">
-                        <h1 className="text-3xl font-bold capitalize mb-1" style={{ color: '#111827' }}>
+                        <h1 className="text-xl sm:text-3xl font-bold capitalize mb-1" style={{ color: '#111827' }}>
                             Ayuno de {format(currentDate, 'MMMM yyyy', { locale: es })}
                         </h1>
                         <p className="text-sm" style={{ color: '#6b7280' }}>Ministerio de Jóvenes</p>

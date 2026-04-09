@@ -252,7 +252,7 @@ export const Home = () => {
                             <div className="p-4 sm:p-6 border-b border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4">
                                 <div className="flex items-center gap-2 text-blue-600">
                                     <Calendar className="w-6 h-6" />
-                                    <h2 className="text-xl font-bold text-gray-900">Calendario de Eventos</h2>
+                                    <h2 className="text-lg sm:text-xl font-bold text-gray-900">Calendario de Eventos</h2>
                                 </div>
 
                                 <div className="flex items-center bg-gray-50 rounded-lg p-1">
