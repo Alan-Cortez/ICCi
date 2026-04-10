@@ -13,6 +13,7 @@ import { getEventsByMonth } from '../services/eventService';
 import { getAllMinistries } from '../services/ministryService';
 import { Loader2 } from 'lucide-react';
 import { MemberProfileModal } from '../components/MemberProfileModal';
+import { NotificationBell } from '../components/notifications/NotificationBell';
 
 export const Home = () => {
     const navigate = useNavigate();
@@ -159,6 +160,14 @@ export const Home = () => {
                             </>
                         )}
 
+                        <button
+                            onClick={() => navigate('/notifications')}
+                            className="w-full flex items-center gap-3 p-3 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-xl transition-colors"
+                        >
+                            <Bell className="w-5 h-5 text-gray-400" />
+                            <span className="font-medium text-sm">Notificaciones</span>
+                        </button>
+
                         {/* User Info & Logout */}
                         <div className="bg-gray-50 rounded-xl p-3">
                             <div className="flex items-center gap-2 mb-2">
@@ -213,6 +222,7 @@ export const Home = () => {
 
                     <div className="flex items-center gap-3">
                         <ThemeToggle />
+                        <NotificationBell />
 
                         {isAdmin() && (
                             <button

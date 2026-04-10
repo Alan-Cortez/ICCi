@@ -14,6 +14,7 @@ import { EditMember } from './pages/EditMember';
 import { YouthMinistry } from './pages/YouthMinistry';
 import { Admin } from './pages/Admin';
 import { Sermons } from './pages/Sermons';
+import { NotificationsPage } from './pages/NotificationsPage';
 import { Loader2 } from 'lucide-react';
 
 function App() {
@@ -67,6 +68,7 @@ function App() {
                         <Route path="/youth-ministry" element={<ProtectedRoute><YouthMinistry /></ProtectedRoute>} />
                         <Route path="/admin" element={<ProtectedRoute requireAdmin><Admin /></ProtectedRoute>} />
                         <Route path="/sermons" element={<ProtectedRoute requireAdmin><Sermons /></ProtectedRoute>} />
+                        <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
                         <Route path="*" element={<Navigate to="/" replace />} />
                     </Routes>
                 </Router>
