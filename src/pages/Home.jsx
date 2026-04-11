@@ -221,8 +221,8 @@ export const Home = () => {
                     </div>
 
                     <div className="flex items-center gap-3">
-                        <ThemeToggle />
                         <NotificationBell />
+                        <ThemeToggle />
 
                         {isAdmin() && (
                             <button
