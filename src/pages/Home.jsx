@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     Plus, Users, Calendar, Search, Shield, Menu, X,
-    ChevronLeft, ChevronRight, Cake, LogOut, User, BookOpen
+    ChevronLeft, ChevronRight, Cake, LogOut, User, BookOpen, Bell
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { OfflineIndicator } from '../components/OfflineIndicator';

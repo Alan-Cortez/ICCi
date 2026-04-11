@@ -1,4 +1,4 @@
-const CACHE_NAME = 'icci-v1';
+const CACHE_NAME = 'icci-v2';
 const STATIC_CACHE = 'icci-static-v1';
 const DYNAMIC_CACHE = 'icci-dynamic-v1';
 const DATA_CACHE = 'icci-data-v1';
