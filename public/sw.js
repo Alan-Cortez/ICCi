@@ -1,4 +1,4 @@
-const CACHE_NAME = 'icci-v5';
+const CACHE_NAME = 'icci-v6';
 const STATIC_CACHE = 'icci-static-v1';
 const DYNAMIC_CACHE = 'icci-dynamic-v1';
 const DATA_CACHE = 'icci-data-v1';
@@ -59,10 +59,12 @@ self.addEventListener('fetch', (event) => {
         event.respondWith(
             fetch(request)
                 .then((response) => {
-                    const responseClone = response.clone();
-                    caches.open(DYNAMIC_CACHE).then((cache) => {
-                        cache.put(request, responseClone);
-                    });
+                    if (response.ok && request.method === 'GET') {
+                        const responseClone = response.clone();
+                        caches.open(DYNAMIC_CACHE).then((cache) => {
+                            cache.put(request, responseClone);
+                        });
+                    }
                     return response;
                 })
                 .catch(() => {
@@ -83,7 +85,9 @@ self.addEventListener('fetch', (event) => {
         event.respondWith(
             fetch(request)
                 .then((response) => {
-                    if (response.ok) {
+                    // Cache only GET requests for Turso (if any)
+                    // Note: Turso driver often uses POST for queries, which cannot be cached in Cache API
+                    if (response.ok && request.method === 'GET') {
                         const responseClone = response.clone();
                         caches.open(DATA_CACHE).then((cache) => {
                             cache.put(request, responseClone);
@@ -112,15 +116,17 @@ self.addEventListener('fetch', (event) => {
         caches.match(request)
             .then((cachedResponse) => {
                 if (cachedResponse) {
-                    fetch(request)
-                        .then((response) => {
-                            if (response.ok) {
-                                caches.open(DYNAMIC_CACHE).then((cache) => {
-                                    cache.put(request, response);
-                                });
-                            }
-                        })
-                        .catch(() => { });
+                    if (request.method === 'GET') {
+                        fetch(request)
+                            .then((response) => {
+                                if (response.ok) {
+                                    caches.open(DYNAMIC_CACHE).then((cache) => {
+                                        cache.put(request, response);
+                                    });
+                                }
+                            })
+                            .catch(() => { });
+                    }
                     return cachedResponse;
                 }
 
@@ -129,10 +135,13 @@ self.addEventListener('fetch', (event) => {
                         if (!response || response.status !== 200 || response.type === 'error') {
                             return response;
                         }
-                        const responseClone = response.clone();
-                        caches.open(DYNAMIC_CACHE).then((cache) => {
-                            cache.put(request, responseClone);
-                        });
+                        
+                        if (request.method === 'GET') {
+                           const responseClone = response.clone();
+                           caches.open(DYNAMIC_CACHE).then((cache) => {
+                               cache.put(request, responseClone);
+                           });
+                        }
                         return response;
                     })
                     .catch(() => {
@@ -159,7 +168,7 @@ self.addEventListener('push', (event) => {
     const options = {
         body: data.body,
         icon: '/logo.png',
-        badge: '/logo.png', // O un icono pequeño
+        badge: '/logo.png',
         data: {
             url: data.url || '/'
         },
