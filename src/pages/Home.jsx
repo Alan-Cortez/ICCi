@@ -8,7 +8,7 @@ import { useAuth } from '../context/AuthContext';
 import { OfflineIndicator } from '../components/OfflineIndicator';
 import { ThemeToggle } from '../components/ThemeToggle';
 import { DailyVerse } from '../components/DailyVerse';
-import { getMembersByBirthdayMonth } from '../services/memberService';
+import { getMembersByBirthdayMonth, getAllMembers } from '../services/memberService';
 import { getEventsByMonth } from '../services/eventService';
 import { getAllMinistries } from '../services/ministryService';
 import { Loader2 } from 'lucide-react';
@@ -21,6 +21,7 @@ export const Home = () => {
 
     // Data States
     const [birthdays, setBirthdays] = useState([]);
+    const [allMembers, setAllMembers] = useState([]);
     const [events, setEvents] = useState([]);
     const [ministries, setMinistries] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -43,13 +44,15 @@ export const Home = () => {
             const currentMonth = currentDate.getMonth() + 1; // 1-12
             const currentYear = currentDate.getFullYear();
 
-            const [birthdaysData, eventsData, ministriesData] = await Promise.all([
+            const [birthdaysData, allMembersData, eventsData, ministriesData] = await Promise.all([
                 getMembersByBirthdayMonth(currentMonth),
+                getAllMembers(),
                 getEventsByMonth(currentMonth, currentYear),
                 getAllMinistries()
             ]);
 
             setBirthdays(birthdaysData);
+            setAllMembers(allMembersData);
             setEvents(eventsData);
             setMinistries(ministriesData);
         } catch (error) {
@@ -115,9 +118,22 @@ export const Home = () => {
                     </div>
 
                     <nav className="flex-1 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+                        <button
+                            onClick={() => navigate('/members')}
+                            className={`
+                                w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 transition-colors
+                                ${window.location.pathname === '/members' ? 'bg-blue-50 text-blue-700' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'}
+                            `}
+                        >
+                            <Users className="w-5 h-5 text-gray-400" />
+                            <span className="font-medium text-sm">Directorio de Miembros</span>
+                        </button>
+
                         {(isAdmin() || isLeader()) && (
                             <>
-                                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Ministerios</p>
+                                <div className="pt-4 pb-2">
+                                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Ministerios</p>
+                                </div>
                                 {ministries
                                     .filter(ministry => isAdmin() || (isLeader() && ministry.id === currentUser?.ministry_id))
                                     .map(ministry => (
@@ -128,7 +144,7 @@ export const Home = () => {
                                             w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 transition-colors
                                             ${ministry.nombre.toLowerCase().includes('jóvenes')
                                                     ? 'bg-blue-50 text-blue-700 hover:bg-blue-100'
-                                                    : 'text-gray-600 hover:bg-gray-50'
+                                                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
                                                 }
                                         `}
                                         >
@@ -152,14 +168,6 @@ export const Home = () => {
                                 </button>
                             </>
                         )}
-
-                        <button
-                            onClick={() => navigate('/members')}
-                            className="w-full flex items-center gap-3 p-3 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-xl transition-colors"
-                        >
-                            <Users className="w-5 h-5 text-gray-400" />
-                            <span className="font-medium text-sm">Miembros Generales</span>
-                        </button>
 
                         <button
                             onClick={() => navigate('/notifications')}
@@ -253,6 +261,59 @@ export const Home = () => {
                         <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Bienvenido, {currentUser?.nombre}</h1>
                         <p className="text-gray-500 dark:text-gray-400">{isAdmin() ? 'Panel de control general' : isLeader() ? 'Gestiona tu ministerio y ve eventos' : 'Puedes agregar nuevos miembros'}</p>
                     </div>
+
+                    {/* Search Results */}
+                    {searchTerm && (
+                        <section className="animate-in fade-in slide-in-from-top-4 duration-300 space-y-4">
+                            <div className="flex items-center justify-between">
+                                <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                                    <Search className="w-5 h-5 text-blue-600" />
+                                    Resultados para "{searchTerm}"
+                                </h2>
+                                <button
+                                    onClick={() => setSearchTerm('')}
+                                    className="text-sm font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+                                >
+                                    Limpiar búsqueda
+                                </button>
+                            </div>
+                            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                                {allMembers
+                                    .filter(m =>
+                                        m.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                        m.apellido_paterno.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                        m.apellido_materno?.toLowerCase().includes(searchTerm.toLowerCase())
+                                    )
+                                    .slice(0, 12) // Limit for performance on Home
+                                    .map(member => (
+                                        <button
+                                            key={member.id}
+                                            onClick={() => setSelectedMember(member)}
+                                            className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 flex items-center gap-3 hover:shadow-md transition-all text-left group"
+                                        >
+                                            <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 rounded-full flex items-center justify-center shrink-0 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                                                <User className="w-5 h-5" />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="font-bold text-gray-900 dark:text-white truncate">{member.nombre} {member.apellido_paterno}</div>
+                                                <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                                                    {member.genero} • {member.dia_cumpleanos} de {monthNames[member.mes_cumpleanos - 1]}
+                                                </div>
+                                            </div>
+                                        </button>
+                                    ))}
+                                {allMembers.filter(m =>
+                                    m.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                    m.apellido_paterno.toLowerCase().includes(searchTerm.toLowerCase())
+                                ).length === 0 && (
+                                    <div className="col-span-full py-12 text-center text-gray-400 dark:text-gray-500 bg-gray-50/50 dark:bg-gray-800/50 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700">
+                                        <p className="mb-1 font-medium">No se encontraron miembros</p>
+                                        <p className="text-sm italic">Prueba con otro nombre o apellido</p>
+                                    </div>
+                                )}
+                            </div>
+                        </section>
+                    )}
 
                     {/* Daily Verse */}
                     <DailyVerse />
