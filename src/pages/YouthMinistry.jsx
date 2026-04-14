@@ -17,7 +17,6 @@ import { YouthDashboard } from '../components/youth/YouthDashboard';
 import { YouthNotes } from '../components/youth/YouthNotes';
 import { getAllMinistries } from '../services/ministryService';
 import { createPendingAction, getPendingCount } from '../services/pendingActionsService';
-import { sendApprovalRequestEmail } from '../services/emailService';
 import { getMinistryLeader } from '../services/userService';
 
 export const YouthMinistry = () => {
@@ -130,17 +129,9 @@ export const YouthMinistry = () => {
                     ministryId
                 );
                 
-                // Notificar al encargado
-                await sendApprovalRequestEmail({
-                    toEmail: leader?.email,
-                    toName: leader?.nombre,
-                    actionLabel: `Agregar miembro: ${memberNombre}`,
-                    requestedBy: currentUser.nombre
-                });
-
                 setShowAddMember(false);
                 refreshPendingCount(ministryId);
-                toast.info('✋ Solicitud enviada. En espera de aprobación del encargado.');
+                toast.info('✋ Solicitud enviada. En espera de aprobación del encargado en el panel de Configuración.');
             } else {
                 await addYouthMember(memberId);
                 setShowAddMember(false);
@@ -185,15 +176,8 @@ export const YouthMinistry = () => {
                         ministryId
                     );
                     
-                    await sendApprovalRequestEmail({
-                        toEmail: leader?.email,
-                        toName: leader?.nombre,
-                        actionLabel: `Remover miembro: ${memberNombre}`,
-                        requestedBy: currentUser.nombre
-                    });
-
                     refreshPendingCount(ministryId);
-                    toast.info('✋ Solicitud enviada. En espera de aprobación del encargado.');
+                    toast.info('✋ Solicitud enviada. En espera de aprobación del encargado en el panel de Configuración.');
                 } else {
                     await removeYouthMember(youth.youth_id);
                     loadYouthMembers();
