@@ -43,18 +43,17 @@ export const Home = () => {
 
             const currentMonth = currentDate.getMonth() + 1; // 1-12
             const currentYear = currentDate.getFullYear();
-
-            const [birthdaysData, allMembersData, eventsData, ministriesData] = await Promise.all([
+            const results = await Promise.allSettled([
                 getMembersByBirthdayMonth(currentMonth),
                 getAllMembers(),
                 getEventsByMonth(currentMonth, currentYear),
                 getAllMinistries()
             ]);
 
-            setBirthdays(birthdaysData);
-            setAllMembers(allMembersData);
-            setEvents(eventsData);
-            setMinistries(ministriesData);
+            setBirthdays(results[0].status === 'fulfilled' ? results[0].value : []);
+            setAllMembers(results[1].status === 'fulfilled' ? results[1].value : []);
+            setEvents(results[2].status === 'fulfilled' ? results[2].value : []);
+            setMinistries(results[3].status === 'fulfilled' ? results[3].value : []);
         } catch (error) {
             console.error('Error al cargar datos:', error);
         } finally {
@@ -169,13 +168,15 @@ export const Home = () => {
                             </>
                         )}
 
-                        <button
-                            onClick={() => navigate('/notifications')}
-                            className="w-full flex items-center gap-3 p-3 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-xl transition-colors"
-                        >
-                            <Bell className="w-5 h-5 text-gray-400" />
-                            <span className="font-medium text-sm">Notificaciones</span>
-                        </button>
+                        {(isAdmin() || isLeader()) && (
+                            <button
+                                onClick={() => navigate('/notifications')}
+                                className="w-full flex items-center gap-3 p-3 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-xl transition-colors"
+                            >
+                                <Bell className="w-5 h-5 text-gray-400" />
+                                <span className="font-medium text-sm">Notificaciones</span>
+                            </button>
+                        )}
 
                         {/* User Info & Logout */}
                         <div className="bg-gray-50 rounded-xl p-3">
@@ -217,7 +218,7 @@ export const Home = () => {
                             <Menu className="w-6 h-6" />
                         </button>
 
-                        <div className="relative hidden sm:block w-64 lg:w-96">
+                        <div className="relative flex-1 min-w-[150px] max-w-[200px] sm:max-w-none sm:w-64 lg:w-96">
                             <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
                             <input
                                 type="text"
@@ -230,7 +231,7 @@ export const Home = () => {
                     </div>
 
                     <div className="flex items-center gap-3">
-                        <NotificationBell />
+                        {(isAdmin() || isLeader()) && <NotificationBell />}
                         <ThemeToggle />
 
                         {isAdmin() && (
@@ -371,6 +372,7 @@ export const Home = () => {
                                         ))}
                                     </div>
                                 )}
+                            </div>
                         </section>
 
                     {/* Birthdays Section - Admin Only */}
