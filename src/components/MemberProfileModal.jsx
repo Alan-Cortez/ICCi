@@ -12,10 +12,16 @@ export const MemberProfileModal = ({ member, onClose }) => {
     return (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md overflow-hidden transform transition-all scale-100">
-                <div className="relative h-32 bg-gradient-to-r from-blue-500 to-purple-600">
+                <div className="relative h-32 bg-[#020617] overflow-hidden">
+                    {/* Abstract Fluid Mesh Background */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-950 via-[#020617] to-slate-950 opacity-90"></div>
+                    <div className="absolute -top-12 -left-12 w-48 h-48 bg-blue-600 rounded-full mix-blend-screen filter blur-[40px] opacity-30"></div>
+                    <div className="absolute top-4 -right-12 w-40 h-40 bg-blue-400 rounded-full mix-blend-screen filter blur-[32px] opacity-20"></div>
+                    <div className="absolute -bottom-10 left-1/4 w-56 h-56 bg-indigo-600 rounded-full mix-blend-screen filter blur-[48px] opacity-20"></div>
+                    
                     <button
                         onClick={onClose}
-                        className="absolute top-4 right-4 p-2 bg-black/20 hover:bg-black/30 rounded-full text-white transition-colors"
+                        className="absolute top-4 right-4 p-2 bg-black/20 hover:bg-black/40 rounded-full text-white transition-colors z-10"
                     >
                         <X className="w-5 h-5" />
                     </button>
