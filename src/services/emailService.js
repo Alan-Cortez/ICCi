@@ -4,13 +4,16 @@ const EMAILJS_SERVICE_ID  = import.meta.env.VITE_EMAILJS_SERVICE_ID  || '';
 const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID || '';
 const EMAILJS_PUBLIC_KEY  = import.meta.env.VITE_EMAILJS_PUBLIC_KEY  || '';
 
-const ADMIN_EMAIL = 'alancortez9966@gmail.com';
-
 /**
- * Envía un correo al admin cuando llega una solicitud de aprobación.
- * Falla silenciosamente si EmailJS no está configurado.
+ * Envía un correo al encargado cuando llega una solicitud de aprobación.
+ * Falla silenciosamente si EmailJS no está configurado o si no hay email de destino.
  */
-export const sendApprovalRequestEmail = async ({ actionLabel, requestedBy, ministryName = 'Jóvenes' }) => {
+export const sendApprovalRequestEmail = async ({ toEmail, toName, actionLabel, requestedBy, ministryName = 'Jóvenes' }) => {
+    if (!toEmail) {
+        console.warn('⚠️ No hay destinatario para el correo de aprobación.');
+        return;
+    }
+
     if (!EMAILJS_SERVICE_ID || !EMAILJS_TEMPLATE_ID || !EMAILJS_PUBLIC_KEY) {
         console.warn('⚠️ EmailJS no configurado. El correo no será enviado.');
         return;
@@ -25,8 +28,8 @@ export const sendApprovalRequestEmail = async ({ actionLabel, requestedBy, minis
                 template_id: EMAILJS_TEMPLATE_ID,
                 user_id: EMAILJS_PUBLIC_KEY,
                 template_params: {
-                    to_email: ADMIN_EMAIL,
-                    to_name: 'Alan (Administrador)',
+                    to_email: toEmail,
+                    to_name: toName || 'Encargado',
                     from_name: requestedBy,
                     ministry_name: ministryName,
                     action_label: actionLabel,
@@ -40,7 +43,7 @@ export const sendApprovalRequestEmail = async ({ actionLabel, requestedBy, minis
         });
 
         if (response.ok) {
-            console.log('📧 Correo de notificación enviado al administrador');
+            console.log(`📧 Correo de notificación enviado a ${toEmail}`);
         } else {
             console.warn('⚠️ Error al enviar correo:', response.statusText);
         }

@@ -55,3 +55,23 @@ export const deleteUser = async (userId) => {
         throw error;
     }
 };
+
+export const getMinistryLeader = async (ministryId) => {
+    try {
+        const result = await tursoClient.execute({
+            sql: `SELECT email, nombre FROM users WHERE role = 'leader' AND ministry_id = ? LIMIT 1`,
+            args: [ministryId]
+        });
+        
+        if (result.rows.length > 0) {
+            return result.rows[0];
+        }
+        
+        // Si no hay líder, buscar admin global
+        const adminResult = await tursoClient.execute(`SELECT email, nombre FROM users WHERE role = 'admin' LIMIT 1`);
+        return adminResult.rows[0] || null;
+    } catch (error) {
+        console.error('Error al obtener líder del ministerio:', error);
+        return null;
+    }
+};

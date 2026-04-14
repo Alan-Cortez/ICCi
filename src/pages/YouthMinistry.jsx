@@ -15,10 +15,10 @@ import { YouthProfile } from '../components/youth/YouthProfile';
 import { EditYouthMember } from '../components/youth/EditYouthMember';
 import { YouthDashboard } from '../components/youth/YouthDashboard';
 import { YouthNotes } from '../components/youth/YouthNotes';
-import { Settings as SettingsView } from '../components/youth/Settings';
 import { getAllMinistries } from '../services/ministryService';
 import { createPendingAction, getPendingCount } from '../services/pendingActionsService';
 import { sendApprovalRequestEmail } from '../services/emailService';
+import { getMinistryLeader } from '../services/userService';
 
 export const YouthMinistry = () => {
     const navigate = useNavigate();
@@ -119,20 +119,28 @@ export const YouthMinistry = () => {
             const memberNombre = member ? `${member.nombre} ${member.apellido_paterno}` : '';
 
             if (isYouthRole()) {
-                // Crear solicitud pendiente en vez de ejecutar directamente
+                // Obtener datos del encargado (Líder del ministerio)
+                const leader = await getMinistryLeader(ministryId);
+
+                // Crear solicitud pendiente
                 await createPendingAction(
                     'add_youth_member',
                     { memberId, memberNombre },
                     currentUser,
                     ministryId
                 );
+                
+                // Notificar al encargado
                 await sendApprovalRequestEmail({
+                    toEmail: leader?.email,
+                    toName: leader?.nombre,
                     actionLabel: `Agregar miembro: ${memberNombre}`,
                     requestedBy: currentUser.nombre
                 });
+
                 setShowAddMember(false);
                 refreshPendingCount(ministryId);
-                toast.info('✋ Solicitud enviada. En espera de aprobación del administrador.');
+                toast.info('✋ Solicitud enviada. En espera de aprobación del encargado.');
             } else {
                 await addYouthMember(memberId);
                 setShowAddMember(false);
@@ -167,18 +175,25 @@ export const YouthMinistry = () => {
             try {
                 const memberNombre = `${youth.nombre} ${youth.apellido_paterno}`;
                 if (isYouthRole()) {
+                    // Obtener datos del encargado (Líder del ministerio)
+                    const leader = await getMinistryLeader(ministryId);
+
                     await createPendingAction(
                         'remove_youth_member',
                         { youthId: youth.youth_id, memberNombre },
                         currentUser,
                         ministryId
                     );
+                    
                     await sendApprovalRequestEmail({
+                        toEmail: leader?.email,
+                        toName: leader?.nombre,
                         actionLabel: `Remover miembro: ${memberNombre}`,
                         requestedBy: currentUser.nombre
                     });
+
                     refreshPendingCount(ministryId);
-                    toast.info('✋ Solicitud enviada. En espera de aprobación del administrador.');
+                    toast.info('✋ Solicitud enviada. En espera de aprobación del encargado.');
                 } else {
                     await removeYouthMember(youth.youth_id);
                     loadYouthMembers();
