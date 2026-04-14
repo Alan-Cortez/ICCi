@@ -2,8 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Loader2, Plus, Trash2, TrendingUp, TrendingDown, AlertTriangle } from 'lucide-react';
 import { getCurrentBalance, addTransaction, getAllTransactions, deleteTransaction } from '../../services/fundService';
 import { getToday } from '../../utils/dateHelpers';
+import { useAuth } from '../../context/AuthContext';
+import { createPendingAction } from '../../services/pendingActionsService';
+import { toast } from 'react-toastify';
 
 export const Funds = ({ ministryId }) => {
+    const { currentUser, isYouthLiderazgo, isYouthNoAsistencia, isAdmin, isLeader } = useAuth();
     const [balance, setBalance] = useState(null);
     const [transactions, setTransactions] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -35,31 +39,58 @@ export const Funds = ({ ministryId }) => {
         }
     };
 
+    const isYouthRole = () => isYouthLiderazgo() || isYouthNoAsistencia();
+    const canDoDirectly = () => isAdmin() || isLeader();
+
     const handleAddTransaction = async () => {
         if (!monto || !concepto.trim()) {
-            alert('El monto y concepto son requeridos');
+            toast.warning('El monto y concepto son requeridos');
             return;
         }
 
         try {
-            await addTransaction(tipo, parseFloat(monto), concepto, fecha, ministryId);
+            if (isYouthRole() && !canDoDirectly()) {
+                await createPendingAction(
+                    'add_transaction',
+                    { tipo, monto: parseFloat(monto), concepto, fecha, ministryId },
+                    currentUser,
+                    ministryId
+                );
+                toast.info('✋ Transacción enviada a revisión por el encargado.');
+            } else {
+                await addTransaction(tipo, parseFloat(monto), concepto, fecha, ministryId);
+                toast.success('Transacción registrada exitosamente');
+                loadData();
+            }
             setMonto('');
             setConcepto('');
             setFecha(getToday());
             setShowForm(false);
-            loadData();
         } catch (error) {
             console.error('Error al agregar transacción:', error);
+            toast.error('Error al procesar solicitud');
         }
     };
 
-    const handleDelete = async (id) => {
-        if (confirm('¿Estás seguro de eliminar esta transacción?')) {
+    const handleDelete = async (trans) => {
+        if (confirm(`¿Estás seguro de eliminar la transacción "${trans.concepto}"?`)) {
             try {
-                await deleteTransaction(id);
-                loadData();
+                if (isYouthRole() && !canDoDirectly()) {
+                    await createPendingAction(
+                        'delete_transaction',
+                        { id: trans.id, concepto: trans.concepto, monto: trans.monto },
+                        currentUser,
+                        ministryId
+                    );
+                    toast.info('✋ Solicitud de eliminación enviada al encargado.');
+                } else {
+                    await deleteTransaction(trans.id);
+                    loadData();
+                    toast.success('Transacción eliminada');
+                }
             } catch (error) {
                 console.error('Error al eliminar transacción:', error);
+                toast.error('Error al procesar eliminación');
             }
         }
     };
@@ -200,7 +231,7 @@ export const Funds = ({ ministryId }) => {
                                     {trans.tipo === 'ingreso' ? '+' : '-'}${parseFloat(trans.monto).toFixed(2)}
                                 </div>
                                 <button
-                                    onClick={() => handleDelete(trans.id)}
+                                    onClick={() => handleDelete(trans)}
                                     className="text-gray-400 hover:text-red-500 transition-colors p-1"
                                 >
                                     <Trash2 className="w-4 h-4" />

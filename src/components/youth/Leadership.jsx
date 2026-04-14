@@ -3,8 +3,12 @@ import { Loader2, Plus, Check, Calendar, Users, BookOpen, Heart, Trash2, Crown, 
 import { getLeadershipMembers, addToLeadership, assignTask, getPendingAssignments, completeAssignment, removeFromLeadership } from '../../services/leadershipService';
 import { getAllYouthMembers } from '../../services/youthService';
 import { getToday } from '../../utils/dateHelpers';
+import { useAuth } from '../../context/AuthContext';
+import { createPendingAction } from '../../services/pendingActionsService';
+import { toast } from 'react-toastify';
 
-export const Leadership = () => {
+export const Leadership = ({ ministryId }) => {
+    const { currentUser, isYouthLiderazgo, isYouthNoAsistencia, isAdmin, isLeader } = useAuth();
     const [leaders, setLeaders] = useState([]);
     const [assignments, setAssignments] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -62,13 +66,32 @@ export const Leadership = () => {
         }
     };
 
+    const isYouthRole = () => isYouthLiderazgo() || isYouthNoAsistencia();
+    const canDoDirectly = () => isAdmin() || isLeader();
+
     const handleAddLeader = async (youthId) => {
         try {
-            await addToLeadership(youthId);
-            setShowAddLeader(false);
-            loadData();
+            const youth = availableYouth.find(y => y.youth_id === youthId);
+            const memberNombre = youth ? `${youth.nombre} ${youth.apellido_paterno}` : '';
+
+            if (isYouthRole() && !canDoDirectly()) {
+                await createPendingAction(
+                    'add_leadership',
+                    { youthId, memberNombre },
+                    currentUser,
+                    ministryId
+                );
+                setShowAddLeader(false);
+                toast.info('✋ Solicitud enviada. En espera de aprobación del encargado.');
+            } else {
+                await addToLeadership(youthId);
+                setShowAddLeader(false);
+                loadData();
+                toast.success('Líder agregado existosamente');
+            }
         } catch (error) {
             console.error('Error al agregar líder:', error);
+            toast.error('Error al procesar solicitud');
         }
     };
 
@@ -109,30 +132,51 @@ export const Leadership = () => {
         if (selectedLeaders.length === 0) return;
 
         try {
-            for (const member of selectedLeaders) {
-                // If it's ayuno, we use youth_id directly. If it's other, we use leadership_id.
-                // However, updated service accepts (youthMemberId, type, date, notes, leadershipId)
+            if (isYouthRole() && !canDoDirectly()) {
+                for (const member of selectedLeaders) {
+                    const idKey = taskType === 'ayuno' ? 'youth_id' : 'leadership_id';
+                    const youthId = taskType === 'ayuno' ? member.youth_id : member.youth_member_id;
+                    const leadershipId = taskType === 'ayuno' ? null : member.leadership_id;
+                    const memberNombre = `${member.nombre} ${member.apellido_paterno}`;
 
-                let youthId, leadershipId;
-
-                if (taskType === 'ayuno') {
-                    youthId = member.youth_id;
-                    leadershipId = null; // No required leadership role for ayuno
-                } else {
-                    leadershipId = member.leadership_id;
-                    youthId = member.youth_member_id; // Leaders have this field
+                    await createPendingAction(
+                        'assign_task',
+                        { 
+                            youthMemberId: youthId, 
+                            tipo: taskType, 
+                            fecha: taskDate, 
+                            notas: taskNotes || null, 
+                            leadershipId,
+                            memberNombre
+                        },
+                        currentUser,
+                        ministryId
+                    );
                 }
-
-                await assignTask(youthId, taskType, taskDate, taskNotes || null, leadershipId);
+                toast.info('✋ Tarea enviada a revisión por el encargado.');
+            } else {
+                for (const member of selectedLeaders) {
+                    let youthId, leadershipId;
+                    if (taskType === 'ayuno') {
+                        youthId = member.youth_id;
+                        leadershipId = null;
+                    } else {
+                        leadershipId = member.leadership_id;
+                        youthId = member.youth_member_id;
+                    }
+                    await assignTask(youthId, taskType, taskDate, taskNotes || null, leadershipId);
+                }
+                loadData();
+                toast.success('Tarea asignada exitosamente');
             }
 
-            loadData();
             setShowAssignTask(false);
             setSelectedLeaders([]);
             setTaskNotes('');
             setTaskDate(getToday());
         } catch (error) {
             console.error('Error al asignar tarea:', error);
+            toast.error('Error al procesar asignación');
         }
     };
 
@@ -148,11 +192,23 @@ export const Leadership = () => {
     const handleRemoveLeader = async (leader) => {
         if (confirm(`¿Estás seguro de remover a ${leader.nombre} ${leader.apellido_paterno} del liderazgo?`)) {
             try {
-                await removeFromLeadership(leader.leadership_id);
-                loadData();
+                const memberNombre = `${leader.nombre} ${leader.apellido_paterno}`;
+                if (isYouthRole() && !canDoDirectly()) {
+                    await createPendingAction(
+                        'remove_leadership',
+                        { leadershipId: leader.leadership_id, memberNombre },
+                        currentUser,
+                        ministryId
+                    );
+                    toast.info('✋ Solicitud de remoción enviada al encargado.');
+                } else {
+                    await removeFromLeadership(leader.leadership_id);
+                    loadData();
+                    toast.success('Líder removido exitosamente');
+                }
             } catch (error) {
                 console.error('Error al remover líder:', error);
-                alert('Error al remover el líder');
+                toast.error('Error al procesar solicitud');
             }
         }
     };

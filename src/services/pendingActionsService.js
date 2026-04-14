@@ -1,6 +1,8 @@
 import tursoClient from '../database/turso';
 import { addYouthMember, removeYouthMember } from './youthService';
-import { addToLeadership, assignTask } from './leadershipService';
+import { addToLeadership, assignTask, removeFromLeadership } from './leadershipService';
+import { createEvent, updateEvent, deleteEvent } from './eventService';
+import { addTransaction, deleteTransaction } from './fundService';
 
 // Crear una solicitud pendiente
 export const createPendingAction = async (actionType, entityData, user, ministryId) => {
@@ -74,8 +76,26 @@ export const approveAction = async (action) => {
             case 'add_leadership':
                 await addToLeadership(data.youthId);
                 break;
+            case 'remove_leadership':
+                await removeFromLeadership(data.leadershipId);
+                break;
             case 'assign_task':
                 await assignTask(data.youthMemberId, data.tipo, data.fecha, data.notas, data.leadershipId);
+                break;
+            case 'create_event':
+                await createEvent(data.nombre, data.descripcion, data.fecha, data.ministryId, data.organizerId);
+                break;
+            case 'update_event':
+                await updateEvent(data.id, data.nombre, data.descripcion, data.fecha, data.organizerId);
+                break;
+            case 'delete_event':
+                await deleteEvent(data.id);
+                break;
+            case 'add_transaction':
+                await addTransaction(data.tipo, data.monto, data.concepto, data.fecha, data.ministryId);
+                break;
+            case 'delete_transaction':
+                await deleteTransaction(data.id);
                 break;
             default:
                 throw new Error(`Tipo de acción desconocido: ${action.action_type}`);
@@ -122,8 +142,20 @@ export const getActionLabel = (actionType, entityData) => {
             return `Remover miembro: ${data.memberNombre || ''}`;
         case 'add_leadership':
             return `Añadir a Liderazgo: ${data.memberNombre || ''}`;
+        case 'remove_leadership':
+            return `Remover de Liderazgo: ${data.memberNombre || ''}`;
         case 'assign_task':
             return `Asignar tarea "${data.tipo}" a ${data.memberNombre || ''} para el ${data.fecha || ''}`;
+        case 'create_event':
+            return `Crear Evento: "${data.nombre}" (${data.fecha})`;
+        case 'update_event':
+            return `Editar Evento: "${data.nombre}" (${data.fecha})`;
+        case 'delete_event':
+            return `Eliminar Evento: "${data.nombre}"`;
+        case 'add_transaction':
+            return `Finanzas: ${data.tipo === 'ingreso' ? 'Ingreso' : 'Egreso'} de $${data.monto} (${data.concepto})`;
+        case 'delete_transaction':
+            return `Finanzas: Borrar transacción "${data.concepto}" de $${data.monto}`;
         default:
             return actionType;
     }

@@ -323,8 +323,8 @@ export const YouthMinistry = () => {
                     </div>
                 )}
 
-                {activeTab === 'attendance' && <Attendance />}
-                {activeTab === 'leadership' && <Leadership />}
+                {activeTab === 'attendance' && <Attendance ministryId={ministryId} />}
+                {activeTab === 'leadership' && <Leadership ministryId={ministryId} />}
                 {activeTab === 'reports' && <Reports ministryId={ministryId} />}
                 {activeTab === 'events' && <Events ministryId={ministryId} ministryName="Ministerio de Jóvenes" />}
                 {activeTab === 'funds' && <Funds ministryId={ministryId} />}

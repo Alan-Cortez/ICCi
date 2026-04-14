@@ -2,8 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Loader2, Plus, Trash2, Calendar, Search, Edit2 } from 'lucide-react';
 import { getAllEvents, createEvent, deleteEvent, getEventsByMinistry, updateEvent } from '../../services/eventService';
 import { getToday, getNextSaturday } from '../../utils/dateHelpers';
+import { useAuth } from '../../context/AuthContext';
+import { createPendingAction } from '../../services/pendingActionsService';
+import { toast } from 'react-toastify';
 
 export const Events = ({ ministryId, ministryName }) => {
+    const { currentUser, isYouthLiderazgo, isYouthNoAsistencia, isAdmin, isLeader } = useAuth();
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
@@ -51,58 +55,69 @@ export const Events = ({ ministryId, ministryName }) => {
 
     // ... (handleSave omitted)
 
+    const isYouthRole = () => isYouthLiderazgo() || isYouthNoAsistencia();
+    const canDoDirectly = () => isAdmin() || isLeader();
+
     const handleSave = async () => {
-        // ... (omitted)
         if (!nombre.trim()) {
-            alert('El nombre del evento es requerido');
+            toast.warning('El nombre del evento es requerido');
             return;
         }
 
         try {
-            // No guardamos un creador específico (miembro), sino que se asume el ministerio
-            const organizer = null;
+            const organizerId = null;
 
-            if (editingId) {
-                // Si es edición, solo actualizamos el evento individual
-                await updateEvent(editingId, nombre, descripcion, fecha, organizer);
-            } else {
-                // Creación
-                if (isMultiDay && fechaFin > fecha) {
-                    // Lógica para crear múltiples eventos día por día
-                    // Parsear fechas como locales para evitar problemas de zona horaria
-                    const [startYear, startMonth, startDay] = fecha.split('-').map(Number);
-                    const [endYear, endMonth, endDay] = fechaFin.split('-').map(Number);
-
-                    const startDate = new Date(startYear, startMonth - 1, startDay);
-                    const endDate = new Date(endYear, endMonth - 1, endDay);
-
-                    const eventsToCreate = [];
-                    let currentDate = new Date(startDate);
-
-                    while (currentDate <= endDate) {
-                        const year = currentDate.getFullYear();
-                        const month = String(currentDate.getMonth() + 1).padStart(2, '0');
-                        const day = String(currentDate.getDate()).padStart(2, '0');
-                        eventsToCreate.push(`${year}-${month}-${day}`);
-                        currentDate.setDate(currentDate.getDate() + 1);
-                    }
-
-                    // Ejecutar promesas en paralelo
-                    await Promise.all(eventsToCreate.map(dateStr =>
-                        createEvent(nombre, descripcion, dateStr, ministryId, organizer)
-                    ));
-
+            if (isYouthRole() && !canDoDirectly()) {
+                if (editingId) {
+                    await createPendingAction(
+                        'update_event',
+                        { id: editingId, nombre, descripcion, fecha, organizerId },
+                        currentUser,
+                        ministryId
+                    );
                 } else {
-                    // Creación simple de un solo día
-                    await createEvent(nombre, descripcion, fecha, ministryId, organizer);
+                    await createPendingAction(
+                        'create_event',
+                        { nombre, descripcion, fecha, ministryId, organizerId },
+                        currentUser,
+                        ministryId
+                    );
                 }
+                resetForm();
+                toast.info('✋ Evento enviado a revisión por el encargado.');
+            } else {
+                if (editingId) {
+                    await updateEvent(editingId, nombre, descripcion, fecha, organizerId);
+                    toast.success('Evento actualizado');
+                } else {
+                    if (isMultiDay && fechaFin > fecha) {
+                        const [startYear, startMonth, startDay] = fecha.split('-').map(Number);
+                        const [endYear, endMonth, endDay] = fechaFin.split('-').map(Number);
+                        const startDate = new Date(startYear, startMonth - 1, startDay);
+                        const endDate = new Date(endYear, endMonth - 1, endDay);
+                        const eventsToCreate = [];
+                        let currentDate = new Date(startDate);
+                        while (currentDate <= endDate) {
+                            const y = currentDate.getFullYear();
+                            const m = String(currentDate.getMonth() + 1).padStart(2, '0');
+                            const d = String(currentDate.getDate()).padStart(2, '0');
+                            eventsToCreate.push(`${y}-${m}-${d}`);
+                            currentDate.setDate(currentDate.getDate() + 1);
+                        }
+                        await Promise.all(eventsToCreate.map(dateStr =>
+                            createEvent(nombre, descripcion, dateStr, ministryId, organizerId)
+                        ));
+                    } else {
+                        await createEvent(nombre, descripcion, fecha, ministryId, organizerId);
+                    }
+                    toast.success('Evento creado exitosamente');
+                }
+                resetForm();
+                loadData();
             }
-
-            resetForm();
-            loadData();
         } catch (error) {
             console.error('Error al guardar evento:', error);
-            alert('Error al guardar evento');
+            toast.error('Error al procesar solicitud');
         }
     };
 
@@ -116,12 +131,25 @@ export const Events = ({ ministryId, ministryName }) => {
     };
 
     const handleDelete = async (id) => {
-        if (confirm('¿Estás seguro de eliminar este evento?')) {
+        const event = events.find(e => e.id === id);
+        if (confirm(`¿Estás seguro de eliminar el evento "${event?.nombre}"?`)) {
             try {
-                await deleteEvent(id);
-                loadData();
+                if (isYouthRole() && !canDoDirectly()) {
+                    await createPendingAction(
+                        'delete_event',
+                        { id, nombre: event?.nombre },
+                        currentUser,
+                        ministryId
+                    );
+                    toast.info('✋ Solicitud de eliminación enviada al encargado.');
+                } else {
+                    await deleteEvent(id);
+                    loadData();
+                    toast.success('Evento eliminado');
+                }
             } catch (error) {
                 console.error('Error al eliminar evento:', error);
+                toast.error('Error al procesar eliminación');
             }
         }
     };
