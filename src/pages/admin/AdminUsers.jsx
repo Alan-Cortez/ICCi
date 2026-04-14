@@ -211,7 +211,9 @@ export const AdminUsers = () => {
                 filters={[
                     { value: 'admin', label: 'Administradores' },
                     { value: 'leader', label: 'Líderes' },
-                    { value: 'member', label: 'Miembros' }
+                    { value: 'member', label: 'Miembros' },
+                    { value: 'youth_liderazgo', label: 'Jóvenes: Coord. Liderazgo' },
+                    { value: 'youth_no_asistencia', label: 'Jóvenes: Líder Asistente' }
                 ]}
                 activeFilter={roleFilter}
                 onFilterChange={setRoleFilter}
@@ -278,13 +280,13 @@ export const AdminUsers = () => {
                                             <div className="flex flex-col gap-1">
                                                 <span className={`px-2 py-1 text-xs font-medium rounded-full w-fit ${user.role === 'admin'
                                                     ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300'
-                                                    : user.role === 'leader'
+                                                    : user.role === 'leader' || user.role.startsWith('youth_')
                                                         ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
                                                         : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'
                                                     }`}>
-                                                    {user.role === 'admin' ? 'Administrador' : user.role === 'leader' ? 'Líder' : 'Miembro'}
+                                                    {user.role === 'admin' ? 'Administrador' : user.role === 'leader' ? 'Líder' : user.role === 'youth_liderazgo' ? 'Jóvenes: Coord. Liderazgo' : user.role === 'youth_no_asistencia' ? 'Jóvenes: Líder Asistente' : 'Miembro'}
                                                 </span>
-                                                {user.role === 'leader' && user.ministry_name && (
+                                                {(user.role === 'leader' || user.role.startsWith('youth_')) && user.ministry_name && (
                                                     <span className="text-xs text-gray-500 dark:text-gray-400">
                                                         {user.ministry_name}
                                                     </span>
@@ -382,10 +384,12 @@ export const AdminUsers = () => {
                                     <option value="member">Miembro</option>
                                     <option value="leader">Líder</option>
                                     <option value="admin">Administrador</option>
+                                    <option value="youth_liderazgo">Jóvenes: Coord. Liderazgo</option>
+                                    <option value="youth_no_asistencia">Jóvenes: Líder Asistente</option>
                                 </select>
                             </div>
 
-                            {formData.role === 'leader' && (
+                            {(formData.role === 'leader' || formData.role?.startsWith('youth_')) && (
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                         Asignar Ministerio

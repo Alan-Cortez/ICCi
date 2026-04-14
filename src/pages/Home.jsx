@@ -17,7 +17,7 @@ import { NotificationBell } from '../components/notifications/NotificationBell';
 
 export const Home = () => {
     const navigate = useNavigate();
-    const { currentUser, logout, isAdmin, isLeader } = useAuth();
+    const { currentUser, logout, isAdmin, isLeader, isYouthLiderazgo, isYouthNoAsistencia } = useAuth();
 
     // Data States
     const [birthdays, setBirthdays] = useState([]);
@@ -128,13 +128,18 @@ export const Home = () => {
                             <span className="font-medium text-sm">Directorio de Miembros</span>
                         </button>
 
-                        {(isAdmin() || isLeader()) && (
+                        {(isAdmin() || isLeader() || isYouthLiderazgo() || isYouthNoAsistencia()) && (
                             <>
                                 <div className="pt-4 pb-2">
                                     <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Ministerios</p>
                                 </div>
                                 {ministries
-                                    .filter(ministry => isAdmin() || (isLeader() && ministry.id === currentUser?.ministry_id))
+                                    .filter(ministry => {
+                                        if (isAdmin()) return true;
+                                        if (isLeader() && ministry.id === currentUser?.ministry_id) return true;
+                                        if ((isYouthLiderazgo() || isYouthNoAsistencia()) && (ministry.id === 16 || ministry.nombre.toLowerCase().includes('jóven') || ministry.nombre.toLowerCase().includes('joven'))) return true;
+                                        return false;
+                                    })
                                     .map(ministry => (
                                         <button
                                             key={ministry.id}
@@ -168,7 +173,7 @@ export const Home = () => {
                             </>
                         )}
 
-                        {(isAdmin() || isLeader()) && (
+                        {(isAdmin() || isLeader() || isYouthLiderazgo() || isYouthNoAsistencia()) && (
                             <button
                                 onClick={() => navigate('/notifications')}
                                 className="w-full flex items-center gap-3 p-3 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-xl transition-colors"

@@ -38,7 +38,8 @@ export const AuthProvider = ({ children }) => {
     };
 
     const hasRole = (role) => {
-        return currentUser && currentUser.role === role;
+        if (!currentUser || !currentUser.role) return false;
+        return String(currentUser.role).trim().toLowerCase() === String(role).trim().toLowerCase();
     };
 
     const isAdmin = () => {
@@ -53,6 +54,14 @@ export const AuthProvider = ({ children }) => {
         return hasRole('member');
     };
 
+    const isYouthLiderazgo = () => {
+        return hasRole('youth_liderazgo');
+    };
+
+    const isYouthNoAsistencia = () => {
+        return hasRole('youth_no_asistencia');
+    };
+
     const value = {
         currentUser,
         login,
@@ -62,6 +71,8 @@ export const AuthProvider = ({ children }) => {
         isAdmin,
         isLeader,
         isMember,
+        isYouthLiderazgo,
+        isYouthNoAsistencia,
         loading
     };
 

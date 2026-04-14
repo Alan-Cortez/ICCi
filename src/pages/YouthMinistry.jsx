@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, Loader2, Users, Home, ClipboardCheck, Award, FileText, Calendar, DollarSign, UserPlus, Notebook } from 'lucide-react';
+import { ArrowLeft, Plus, Loader2, Users, Home, ClipboardCheck, Award, FileText, Calendar, DollarSign, UserPlus, Notebook, Settings } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-toastify';
 import { YouthCard } from '../components/YouthCard';
@@ -15,11 +15,12 @@ import { YouthProfile } from '../components/youth/YouthProfile';
 import { EditYouthMember } from '../components/youth/EditYouthMember';
 import { YouthDashboard } from '../components/youth/YouthDashboard';
 import { YouthNotes } from '../components/youth/YouthNotes';
+import { Settings as SettingsView } from '../components/youth/Settings';
 import { getAllMinistries } from '../services/ministryService';
 
 export const YouthMinistry = () => {
     const navigate = useNavigate();
-    const { currentUser, isLeader, loading: authLoading } = useAuth();
+    const { currentUser, isLeader, isAdmin, isYouthLiderazgo, isYouthNoAsistencia, loading: authLoading } = useAuth();
     const [youthMembers, setYouthMembers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('home');
@@ -52,9 +53,15 @@ export const YouthMinistry = () => {
                 setMinistryId(youthMinistry.id);
 
                 // Access Control Check
-                if (!authLoading && isLeader() && currentUser?.ministry_id !== youthMinistry.id) {
-                    toast.error('No tienes permiso para acceder a este ministerio');
-                    navigate('/');
+                if (!authLoading && !isAdmin()) {
+                    const isAuthorizedYouthRole = isYouthLiderazgo() || isYouthNoAsistencia();
+                    if (!isAuthorizedYouthRole && (!isLeader() && currentUser?.role !== 'admin')) {
+                         toast.error('No tienes permisos de liderazgo');
+                         navigate('/');
+                    } else if (isLeader() && currentUser?.ministry_id !== youthMinistry.id) {
+                         toast.error('No tienes permiso para acceder a este ministerio');
+                         navigate('/');
+                    }
                 }
             }
         } catch (error) {
@@ -135,7 +142,7 @@ export const YouthMinistry = () => {
         );
     }
 
-    const tabs = [
+    const allTabs = [
         { id: 'home', label: 'Inicio', icon: Home },
         { id: 'members', label: 'Miembros', icon: Users },
         { id: 'attendance', label: 'Asistencia', icon: ClipboardCheck },
@@ -143,7 +150,19 @@ export const YouthMinistry = () => {
         { id: 'reports', label: 'Reportes', icon: FileText },
         { id: 'events', label: 'Eventos', icon: Calendar },
         { id: 'funds', label: 'Fondos', icon: DollarSign },
+        { id: 'settings', label: 'Configuración', icon: Settings },
     ];
+
+    let tabs = [...allTabs];
+    if (isYouthLiderazgo()) {
+        tabs = allTabs.filter(t => ['home', 'leadership'].includes(t.id));
+    } else if (isYouthNoAsistencia()) {
+        tabs = allTabs.filter(t => t.id !== 'attendance');
+    }
+
+    if (!isAdmin() && !isLeader()) {
+         tabs = tabs.filter(t => t.id !== 'settings');
+    }
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20 font-sans">
@@ -247,6 +266,7 @@ export const YouthMinistry = () => {
                 {activeTab === 'reports' && <Reports ministryId={ministryId} />}
                 {activeTab === 'events' && <Events ministryId={ministryId} ministryName="Ministerio de Jóvenes" />}
                 {activeTab === 'funds' && <Funds ministryId={ministryId} />}
+                {activeTab === 'settings' && <SettingsView ministryId={ministryId} />}
             </div>
 
             {/* Notes Modal */}
