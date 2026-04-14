@@ -89,16 +89,19 @@ export const YouthMinistry = () => {
     useEffect(() => {
         if (!ministryId) return;
         
+        console.log('--- ICCi Youth Ministry Module v1.1 Active ---');
+
         // Mensaje de bienvenida/estado para roles restringidos
-        if (isYouthRole()) {
-            toast.info('🛡️ Modo de Aprobación Activo: Sus cambios serán revisados por el encargado.', {
+        if (isYouthRole() && !canDoDirectly()) {
+            toast.info('🛡️ MODO APROBACIÓN ACTIVADO: Como subordinado, sus cambios irán a revisión.', {
                 position: "bottom-center",
-                autoClose: 5000,
+                autoClose: 8000,
                 hideProgressBar: false,
                 closeOnClick: true,
                 pauseOnHover: true,
                 draggable: true,
                 progress: undefined,
+                theme: "colored"
             });
         }
 
@@ -126,6 +129,7 @@ export const YouthMinistry = () => {
     };
 
     const isYouthRole = () => isYouthLiderazgo() || isYouthNoAsistencia();
+    const canDoDirectly = () => isAdmin() || isLeader();
 
     const handleAddYouth = async (memberId) => {
         try {
