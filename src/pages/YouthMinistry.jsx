@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, Loader2, Users, Home, ClipboardCheck, Award, FileText, Calendar, DollarSign, UserPlus, Notebook, Settings } from 'lucide-react';
+import { ArrowLeft, Plus, Loader2, Users, Home, ClipboardCheck, Award, FileText, Calendar, DollarSign, UserPlus, Notebook, Settings, Clock } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-toastify';
 import { YouthCard } from '../components/YouthCard';
@@ -17,6 +17,8 @@ import { YouthDashboard } from '../components/youth/YouthDashboard';
 import { YouthNotes } from '../components/youth/YouthNotes';
 import { Settings as SettingsView } from '../components/youth/Settings';
 import { getAllMinistries } from '../services/ministryService';
+import { createPendingAction, getPendingCount } from '../services/pendingActionsService';
+import { sendApprovalRequestEmail } from '../services/emailService';
 
 export const YouthMinistry = () => {
     const navigate = useNavigate();
@@ -32,6 +34,7 @@ export const YouthMinistry = () => {
     const [showEdit, setShowEdit] = useState(false);
     const [editingMember, setEditingMember] = useState(null);
     const [showNotes, setShowNotes] = useState(false);
+    const [pendingCount, setPendingCount] = useState(0);
 
     const loadYouthMembers = async () => {
         try {
@@ -69,12 +72,26 @@ export const YouthMinistry = () => {
         }
     };
 
+    const refreshPendingCount = useCallback(async (mid) => {
+        if (!mid) return;
+        const count = await getPendingCount(mid);
+        setPendingCount(count);
+    }, []);
+
     useEffect(() => {
         if (!authLoading) {
             loadYouthMembers();
             loadMinistryId();
         }
     }, [authLoading]);
+
+    // Poll pending count every 30 seconds for the admin
+    useEffect(() => {
+        if (!ministryId) return;
+        refreshPendingCount(ministryId);
+        const interval = setInterval(() => refreshPendingCount(ministryId), 30000);
+        return () => clearInterval(interval);
+    }, [ministryId, refreshPendingCount]);
 
     const handleShowAddMember = async () => {
         try {
@@ -94,13 +111,37 @@ export const YouthMinistry = () => {
         }
     };
 
+    const isYouthRole = () => isYouthLiderazgo() || isYouthNoAsistencia();
+
     const handleAddYouth = async (memberId) => {
         try {
-            await addYouthMember(memberId);
-            setShowAddMember(false);
-            loadYouthMembers();
+            const member = availableMembers.find(m => m.id === memberId);
+            const memberNombre = member ? `${member.nombre} ${member.apellido_paterno}` : '';
+
+            if (isYouthRole()) {
+                // Crear solicitud pendiente en vez de ejecutar directamente
+                await createPendingAction(
+                    'add_youth_member',
+                    { memberId, memberNombre },
+                    currentUser,
+                    ministryId
+                );
+                await sendApprovalRequestEmail({
+                    actionLabel: `Agregar miembro: ${memberNombre}`,
+                    requestedBy: currentUser.nombre
+                });
+                setShowAddMember(false);
+                refreshPendingCount(ministryId);
+                toast.info('✋ Solicitud enviada. En espera de aprobación del administrador.');
+            } else {
+                await addYouthMember(memberId);
+                setShowAddMember(false);
+                loadYouthMembers();
+                toast.success('Joven agregado exitosamente');
+            }
         } catch (error) {
             console.error('Error al agregar joven:', error);
+            toast.error('Error al procesar solicitud');
         }
     };
 
@@ -124,11 +165,28 @@ export const YouthMinistry = () => {
     const handleRemoveYouth = async (youth) => {
         if (confirm(`¿Estás seguro de remover a ${youth.nombre} ${youth.apellido_paterno} del ministerio de jóvenes?`)) {
             try {
-                await removeYouthMember(youth.youth_id);
-                loadYouthMembers();
+                const memberNombre = `${youth.nombre} ${youth.apellido_paterno}`;
+                if (isYouthRole()) {
+                    await createPendingAction(
+                        'remove_youth_member',
+                        { youthId: youth.youth_id, memberNombre },
+                        currentUser,
+                        ministryId
+                    );
+                    await sendApprovalRequestEmail({
+                        actionLabel: `Remover miembro: ${memberNombre}`,
+                        requestedBy: currentUser.nombre
+                    });
+                    refreshPendingCount(ministryId);
+                    toast.info('✋ Solicitud enviada. En espera de aprobación del administrador.');
+                } else {
+                    await removeYouthMember(youth.youth_id);
+                    loadYouthMembers();
+                    toast.success('Joven removido exitosamente');
+                }
             } catch (error) {
                 console.error('Error al remover joven:', error);
-                alert('Error al remover el joven del ministerio');
+                toast.error('Error al procesar solicitud');
             }
         }
     };
@@ -150,7 +208,7 @@ export const YouthMinistry = () => {
         { id: 'reports', label: 'Reportes', icon: FileText },
         { id: 'events', label: 'Eventos', icon: Calendar },
         { id: 'funds', label: 'Fondos', icon: DollarSign },
-        { id: 'settings', label: 'Configuración', icon: Settings },
+        { id: 'settings', label: 'Configuración', icon: Settings, badge: pendingCount },
     ];
 
     let tabs = [...allTabs];
@@ -215,13 +273,18 @@ export const YouthMinistry = () => {
                                 <button
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id)}
-                                    className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-all whitespace-nowrap text-sm font-medium ${isActive
+                                    className={`relative flex items-center gap-2 px-4 py-3 border-b-2 transition-all whitespace-nowrap text-sm font-medium ${isActive
                                         ? 'border-white text-white'
                                         : 'border-transparent text-blue-100 hover:text-white hover:bg-white/5'
                                         }`}
                                 >
                                     <Icon className={`w-4 h-4 ${isActive ? 'scale-110' : ''}`} />
                                     {tab.label}
+                                    {tab.badge > 0 && (
+                                        <span className="absolute top-1.5 right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                                            {tab.badge > 9 ? '9+' : tab.badge}
+                                        </span>
+                                    )}
                                 </button>
                             );
                         })}
@@ -266,7 +329,7 @@ export const YouthMinistry = () => {
                 {activeTab === 'reports' && <Reports ministryId={ministryId} />}
                 {activeTab === 'events' && <Events ministryId={ministryId} ministryName="Ministerio de Jóvenes" />}
                 {activeTab === 'funds' && <Funds ministryId={ministryId} />}
-                {activeTab === 'settings' && <SettingsView ministryId={ministryId} />}
+                {activeTab === 'settings' && <SettingsView ministryId={ministryId} onPendingChange={() => refreshPendingCount(ministryId)} />}
             </div>
 
             {/* Notes Modal */}
