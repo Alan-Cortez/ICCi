@@ -18,6 +18,7 @@ import { YouthNotes } from '../components/youth/YouthNotes';
 import { getAllMinistries } from '../services/ministryService';
 import { createPendingAction, getPendingCount } from '../services/pendingActionsService';
 import { getMinistryLeader } from '../services/userService';
+import { Settings as SettingsView } from '../components/youth/Settings';
 
 export const YouthMinistry = () => {
     const navigate = useNavigate();
@@ -87,6 +88,20 @@ export const YouthMinistry = () => {
     // Poll pending count every 30 seconds for the admin
     useEffect(() => {
         if (!ministryId) return;
+        
+        // Mensaje de bienvenida/estado para roles restringidos
+        if (isYouthRole()) {
+            toast.info('🛡️ Modo de Aprobación Activo: Sus cambios serán revisados por el encargado.', {
+                position: "bottom-center",
+                autoClose: 5000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+            });
+        }
+
         refreshPendingCount(ministryId);
         const interval = setInterval(() => refreshPendingCount(ministryId), 30000);
         return () => clearInterval(interval);

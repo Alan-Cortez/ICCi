@@ -182,10 +182,25 @@ export const Leadership = ({ ministryId }) => {
 
     const handleCompleteTask = async (assignmentId) => {
         try {
-            await completeAssignment(assignmentId);
-            loadData();
+            const assignment = assignments.find(a => a.id === assignmentId);
+            const memberNombre = assignment ? `${assignment.nombre} ${assignment.apellido_paterno}` : '';
+
+            if (isYouthRole() && !canDoDirectly()) {
+                await createPendingAction(
+                    'complete_task',
+                    { assignmentId, memberNombre },
+                    currentUser,
+                    ministryId
+                );
+                toast.info('✋ Solicitud de cierre de tarea enviada al encargado.');
+            } else {
+                await completeAssignment(assignmentId);
+                loadData();
+                toast.success('Tarea completada');
+            }
         } catch (error) {
             console.error('Error al completar tarea:', error);
+            toast.error('Error al procesar solicitud');
         }
     };
 

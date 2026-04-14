@@ -97,6 +97,9 @@ export const approveAction = async (action) => {
             case 'delete_transaction':
                 await deleteTransaction(data.id);
                 break;
+            case 'complete_task':
+                await completeAssignment(data.assignmentId);
+                break;
             default:
                 throw new Error(`Tipo de acción desconocido: ${action.action_type}`);
         }
@@ -156,6 +159,8 @@ export const getActionLabel = (actionType, entityData) => {
             return `Finanzas: ${data.tipo === 'ingreso' ? 'Ingreso' : 'Egreso'} de $${data.monto} (${data.concepto})`;
         case 'delete_transaction':
             return `Finanzas: Borrar transacción "${data.concepto}" de $${data.monto}`;
+        case 'complete_task':
+            return `Marcar tarea completada: ${data.memberNombre || ''}`;
         default:
             return actionType;
     }
