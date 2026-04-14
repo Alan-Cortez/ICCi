@@ -150,15 +150,16 @@ export const Home = () => {
                                     <BookOpen className="w-5 h-5 text-gray-400" />
                                     <span className="font-medium text-sm">Escritos</span>
                                 </button>
-                                <button
-                                    onClick={() => navigate('/members')}
-                                    className="w-full flex items-center gap-3 p-3 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-xl transition-colors"
-                                >
-                                    <Users className="w-5 h-5 text-gray-400" />
-                                    <span className="font-medium text-sm">Miembros Generales</span>
-                                </button>
                             </>
                         )}
+
+                        <button
+                            onClick={() => navigate('/members')}
+                            className="w-full flex items-center gap-3 p-3 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-xl transition-colors"
+                        >
+                            <Users className="w-5 h-5 text-gray-400" />
+                            <span className="font-medium text-sm">Miembros Generales</span>
+                        </button>
 
                         <button
                             onClick={() => navigate('/notifications')}

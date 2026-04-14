@@ -60,7 +60,7 @@ function App() {
                     <Routes>
                         <Route path="/login" element={<Login />} />
                         <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
-                        <Route path="/members" element={<ProtectedRoute requireAdmin><Members /></ProtectedRoute>} />
+                        <Route path="/members" element={<ProtectedRoute><Members /></ProtectedRoute>} />
                         <Route path="/ministries" element={<ProtectedRoute requireAdmin><Ministries /></ProtectedRoute>} />
                         <Route path="/ministry/:id" element={<ProtectedRoute><MinistryDetail /></ProtectedRoute>} />
                         <Route path="/add-member" element={<ProtectedRoute><AddMember /></ProtectedRoute>} />
