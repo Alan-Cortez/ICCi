@@ -257,9 +257,8 @@ export const Home = () => {
                     {/* Daily Verse */}
                     <DailyVerse />
 
-                    {/* Calendar Section - Admin & Leader */}
-                    {(isAdmin() || isLeader()) && (
-                        <section className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    {/* Calendar Section */}
+                    <section className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden transition-colors">
                             <div className="p-4 sm:p-6 border-b border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4">
                                 <div className="flex items-center gap-2 text-blue-600">
                                     <Calendar className="w-6 h-6" />
@@ -311,9 +310,7 @@ export const Home = () => {
                                         ))}
                                     </div>
                                 )}
-                            </div>
                         </section>
-                    )}
 
                     {/* Birthdays Section - Admin Only */}
                     {birthdays.length > 0 && (
