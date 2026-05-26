@@ -1,7 +1,9 @@
 export function sendJson(res, status, body) {
-  res.status(status).type('application/json').send(
-    JSON.stringify(body, (key, value) => typeof value === 'bigint' ? Number(value) : value)
+  const json = JSON.stringify(body, (key, value) =>
+    typeof value === 'bigint' ? Number(value) : value
   );
+  res.setHeader('Content-Type', 'application/json');
+  res.status(status).end(json);
 }
 
 export function getBearerToken(req) {
