@@ -4,5 +4,15 @@
       "path": "/api/check-birthdays",
       "schedule": "0 13 * * *"
     }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/$1"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
   ]
 }

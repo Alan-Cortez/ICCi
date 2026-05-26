@@ -3,8 +3,8 @@ import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Loader2 } from 'lucide-react';
 
-export const ProtectedRoute = ({ children, requireAdmin = false }) => {
-    const { currentUser, loading, isAdmin } = useAuth();
+export const ProtectedRoute = ({ children, requireAdmin = false, requireTreasurer = false }) => {
+    const { currentUser, loading, isAdmin, isTreasurer } = useAuth();
 
     if (loading) {
         return (
@@ -31,6 +31,26 @@ export const ProtectedRoute = ({ children, requireAdmin = false }) => {
                     <button
                         onClick={() => window.history.back()}
                         className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                        Volver
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    if (requireTreasurer && !isAdmin() && !isTreasurer()) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-4">
+                <div className="bg-white rounded-xl shadow-lg p-8 max-w-md text-center">
+                    <div className="text-6xl mb-4">💰</div>
+                    <h1 className="text-2xl font-bold text-gray-900 mb-2">Acceso Denegado</h1>
+                    <p className="text-gray-600 mb-6">
+                        Solo el Tesorero o Administrador pueden acceder a esta sección.
+                    </p>
+                    <button
+                        onClick={() => window.history.back()}
+                        className="bg-amber-500 text-white px-6 py-2 rounded-lg hover:bg-amber-600 transition-colors"
                     >
                         Volver
                     </button>

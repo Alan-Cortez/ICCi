@@ -1,143 +1,32 @@
-import tursoClient from '../database/turso';
-import { addYouthMember, removeYouthMember } from './youthService';
-import { addToLeadership, assignTask, removeFromLeadership } from './leadershipService';
-import { createEvent, updateEvent, deleteEvent } from './eventService';
-import { addTransaction, deleteTransaction } from './fundService';
+import { apiExecute } from '../lib/apiClient';
 
-// Crear una solicitud pendiente
-export const createPendingAction = async (actionType, entityData, user, ministryId) => {
-    try {
-        const result = await tursoClient.execute({
-            sql: `INSERT INTO pending_actions 
-                  (action_type, entity_data, requested_by_id, requested_by_nombre, ministry_id)
-                  VALUES (?, ?, ?, ?, ?)`,
-            args: [
-                actionType,
-                JSON.stringify(entityData),
-                String(user.id),
-                user.nombre,
-                ministryId || null
-            ]
-        });
-        return { success: true, id: result.lastInsertRowid };
-    } catch (error) {
-        console.error('Error al crear acción pendiente:', error);
-        throw error;
-    }
-};
+export const createPendingAction = async (actionType, entityData, user, ministryId) =>
+    apiExecute('pending.create', { actionType, entityData, ministryId });
 
-// Obtener todas las solicitudes pendientes del ministerio
-export const getPendingActions = async (ministryId) => {
-    try {
-        const result = await tursoClient.execute({
-            sql: `SELECT * FROM pending_actions 
-                  WHERE ministry_id = ? 
-                  ORDER BY created_at DESC`,
-            args: [ministryId]
-        });
-        return result.rows.map(row => ({
-            ...row,
-            entity_data: JSON.parse(row.entity_data)
-        }));
-    } catch (error) {
-        console.error('Error al obtener acciones pendientes:', error);
-        throw error;
-    }
-};
+export const getPendingActions = async (ministryId) => apiExecute('pending.getAll', { ministryId });
 
-// Obtener solo las pendientes (sin revisar)
 export const getPendingCount = async (ministryId) => {
     try {
-        const result = await tursoClient.execute({
-            sql: `SELECT COUNT(*) as total FROM pending_actions WHERE ministry_id = ? AND status = 'pending'`,
-            args: [ministryId]
-        });
-        return parseInt(result.rows[0]?.total || 0);
-    } catch (error) {
+        return await apiExecute('pending.getCount', { ministryId });
+    } catch {
         return 0;
     }
 };
 
-// Aprobar una acción y ejecutarla en la DB
-export const approveAction = async (action) => {
-    try {
-        const data = typeof action.entity_data === 'string'
-            ? JSON.parse(action.entity_data)
-            : action.entity_data;
+export const approveAction = async (action) => apiExecute('pending.approve', { action });
 
-        // Ejecutar la acción original
-        switch (action.action_type) {
-            case 'add_youth_member':
-                await addYouthMember(data.memberId);
-                break;
-            case 'remove_youth_member':
-                await removeYouthMember(data.youthId);
-                break;
-            case 'add_leadership':
-                await addToLeadership(data.youthId);
-                break;
-            case 'remove_leadership':
-                await removeFromLeadership(data.leadershipId);
-                break;
-            case 'assign_task':
-                await assignTask(data.youthMemberId, data.tipo, data.fecha, data.notas, data.leadershipId);
-                break;
-            case 'create_event':
-                await createEvent(data.nombre, data.descripcion, data.fecha, data.ministryId, data.organizerId);
-                break;
-            case 'update_event':
-                await updateEvent(data.id, data.nombre, data.descripcion, data.fecha, data.organizerId);
-                break;
-            case 'delete_event':
-                await deleteEvent(data.id);
-                break;
-            case 'add_transaction':
-                await addTransaction(data.tipo, data.monto, data.concepto, data.fecha, data.ministryId);
-                break;
-            case 'delete_transaction':
-                await deleteTransaction(data.id);
-                break;
-            case 'complete_task':
-                await completeAssignment(data.assignmentId);
-                break;
-            default:
-                throw new Error(`Tipo de acción desconocido: ${action.action_type}`);
-        }
+export const rejectAction = async (actionId, note = '') => apiExecute('pending.reject', { actionId, note });
 
-        // Marcar como aprobada
-        await tursoClient.execute({
-            sql: `UPDATE pending_actions 
-                  SET status = 'approved', reviewed_at = datetime('now') 
-                  WHERE id = ?`,
-            args: [action.id]
-        });
-
-        return { success: true };
-    } catch (error) {
-        console.error('Error al aprobar acción:', error);
-        throw error;
-    }
-};
-
-// Rechazar una acción
-export const rejectAction = async (actionId, note = '') => {
-    try {
-        await tursoClient.execute({
-            sql: `UPDATE pending_actions 
-                  SET status = 'rejected', reviewed_at = datetime('now'), review_note = ?
-                  WHERE id = ?`,
-            args: [note, actionId]
-        });
-        return { success: true };
-    } catch (error) {
-        console.error('Error al rechazar acción:', error);
-        throw error;
-    }
-};
-
-// Labels descriptivos para cada tipo de acción
 export const getActionLabel = (actionType, entityData) => {
-    const data = typeof entityData === 'string' ? JSON.parse(entityData) : entityData;
+    if (!entityData) return actionType;
+    let data;
+    try {
+        data = typeof entityData === 'string' ? JSON.parse(entityData) : entityData;
+    } catch {
+        return actionType;
+    }
+    if (!data) return actionType;
+
     switch (actionType) {
         case 'add_youth_member':
             return `Agregar miembro: ${data.memberNombre || ''}`;

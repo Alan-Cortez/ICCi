@@ -69,13 +69,13 @@ export const generateAnnualReport = async (año) => {
 // Generar reporte financiero
 export const generateFinancialReport = async (ministryId, start, end) => {
     try {
-        const { getAllTransactions } = await import('./fundService'); // Dynamic import to avoid circular dep if any
-        const allTransactions = await getAllTransactions(ministryId);
-
-        // Filter by date range
-        const filtered = allTransactions.filter(t => {
-            return t.fecha >= start && t.fecha <= end;
+        const { getAllTransactions } = await import('./fundService');
+        const allTransactions = await getAllTransactions({
+            ministryId,
+            desde: start,
+            hasta: end,
         });
+        const filtered = allTransactions;
 
         const income = filtered.filter(t => t.tipo === 'ingreso');
         const expense = filtered.filter(t => t.tipo === 'salida');
@@ -102,54 +102,51 @@ export const generateFinancialReport = async (ministryId, start, end) => {
     }
 };
 
-// Generar tendencias de asistencia (últimas 12 unidades)
-export const generateAttendanceTrends = async (type = 'weekly') => {
+// Tendencia de asistencia alineada al período del reporte (por reunión o por mes)
+export const generateAttendanceTrends = async (start, end) => {
     try {
-        const labels = [];
-        const data = [];
-        const today = new Date();
+        const records = await getAttendanceByDateRange(start, end);
+        const valid = records.filter(r => !r.es_reunion_cancelada);
+        if (valid.length === 0) return [];
 
-        for (let i = 11; i >= 0; i--) {
-            let start, end, label;
-            const d = new Date(today);
+        const dayMs = 1000 * 60 * 60 * 24;
+        const spanDays = Math.ceil((new Date(end) - new Date(start)) / dayMs) + 1;
 
-            if (type === 'weekly') {
-                d.setDate(d.getDate() - (i * 7));
-                // Get Saturday of that week
-                const day = d.getDay();
-                const diff = d.getDate() - day + (day === 0 ? -1 : 6); // adjust when day is sunday
-                const saturday = new Date(d.setDate(diff));
-                start = saturday.toISOString().split('T')[0];
-                end = start; // One day
-                label = saturday.toLocaleDateString('es-MX', { day: 'numeric', month: 'short' });
-            } else {
-                d.setMonth(d.getMonth() - i);
-                const year = d.getFullYear();
-                const month = d.getMonth() + 1;
-                const range = getDateRange('monthly', year, month);
-                start = range.start;
-                end = range.end;
-                label = d.toLocaleDateString('es-MX', { month: 'short' });
-            }
+        const formatShort = (dateStr) => {
+            const [y, m, d] = dateStr.split('-').map(Number);
+            return new Date(y, m - 1, d).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' });
+        };
 
-            // Get attendance for this slice
-            const records = await getAttendanceByDateRange(start, end);
-
-            const present = records.filter(r => r.presente === 1).length;
-            const total = records.length; // This might differ if multiple meetings
-
-            // Average attendance % for that period
-            const percentage = total > 0 ? Math.round((present / total) * 100) : 0;
-
-            labels.push(label);
-            data.push({
-                name: label,
-                asistencia: percentage,
-                total: present
+        // Períodos largos: agrupar por mes
+        if (spanDays > 62) {
+            const byMonth = {};
+            valid.forEach((r) => {
+                const key = r.fecha.slice(0, 7);
+                if (!byMonth[key]) byMonth[key] = [];
+                byMonth[key].push(r);
+            });
+            return Object.keys(byMonth).sort().map((key) => {
+                const monthRecords = byMonth[key];
+                const present = monthRecords.filter((r) => r.presente === 1).length;
+                const total = monthRecords.length;
+                const [y, m] = key.split('-').map(Number);
+                const label = new Date(y, m - 1, 1).toLocaleDateString('es-MX', { month: 'short', year: '2-digit' });
+                return { name: label, asistencia: total > 0 ? Math.round((present / total) * 100) : 0, total: present };
             });
         }
 
-        return data;
+        // Períodos cortos: una barra por fecha de reunión
+        const dates = [...new Set(valid.map((r) => r.fecha))].sort();
+        return dates.map((fecha) => {
+            const dayRecords = valid.filter((r) => r.fecha === fecha);
+            const present = dayRecords.filter((r) => r.presente === 1).length;
+            const total = dayRecords.length;
+            return {
+                name: formatShort(fecha),
+                asistencia: total > 0 ? Math.round((present / total) * 100) : 0,
+                total: present,
+            };
+        });
     } catch (error) {
         console.error('Error trends:', error);
         return [];

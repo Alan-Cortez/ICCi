@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     Plus, Users, Calendar, Search, Shield, Menu, X,
-    ChevronLeft, ChevronRight, Cake, LogOut, User, BookOpen, Bell
+    ChevronLeft, ChevronRight, Cake, LogOut, User, BookOpen, Bell, DollarSign
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { OfflineIndicator } from '../components/OfflineIndicator';
@@ -17,7 +17,7 @@ import { NotificationBell } from '../components/notifications/NotificationBell';
 
 export const Home = () => {
     const navigate = useNavigate();
-    const { currentUser, logout, isAdmin, isLeader, isYouthLiderazgo, isYouthNoAsistencia } = useAuth();
+    const { currentUser, logout, isAdmin, isLeader, isYouthLiderazgo, isYouthNoAsistencia, isTreasurer } = useAuth();
 
     // Data States
     const [birthdays, setBirthdays] = useState([]);
@@ -183,6 +183,16 @@ export const Home = () => {
                             </button>
                         )}
 
+                        {(isAdmin() || isTreasurer()) && (
+                            <button
+                                onClick={() => navigate('/treasury')}
+                                className="w-full flex items-center gap-3 p-3 text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-xl transition-colors"
+                            >
+                                <DollarSign className="w-5 h-5 text-amber-500" />
+                                <span className="font-medium text-sm">Tesorería</span>
+                            </button>
+                        )}
+
                         {/* User Info & Logout */}
                         <div className="bg-gray-50 rounded-xl p-3">
                             <div className="flex items-center gap-2 mb-2">
@@ -192,7 +202,13 @@ export const Home = () => {
                                 <div className="flex-1 min-w-0">
                                     <p className="text-sm font-semibold text-gray-900 truncate">{currentUser?.nombre}</p>
                                     <p className="text-xs text-gray-500 capitalize">
-                                        {currentUser?.role === 'admin' ? 'Administrador' : currentUser?.role === 'leader' ? 'Líder' : 'Miembro'}
+                                        {currentUser?.role === 'admin'
+                                            ? 'Administrador'
+                                            : currentUser?.role === 'leader'
+                                            ? 'Líder'
+                                            : currentUser?.role === 'treasurer'
+                                            ? 'Tesorero'
+                                            : 'Miembro'}
                                     </p>
                                 </div>
                             </div>

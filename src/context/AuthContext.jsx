@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { getCurrentUser, login as authLogin, logout as authLogout } from '../services/authService';
+import { getCurrentUser, login as authLogin, logout as authLogout, validateSession } from '../services/authService';
 
 const AuthContext = createContext(null);
 
@@ -16,10 +16,16 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Cargar usuario desde localStorage al iniciar
-        const user = getCurrentUser();
-        setCurrentUser(user);
-        setLoading(false);
+        let cancelled = false;
+        (async () => {
+            const stored = getCurrentUser();
+            if (stored) {
+                const user = await validateSession();
+                if (!cancelled) setCurrentUser(user);
+            }
+            if (!cancelled) setLoading(false);
+        })();
+        return () => { cancelled = true; };
     }, []);
 
     const login = async (email, password) => {
@@ -62,6 +68,10 @@ export const AuthProvider = ({ children }) => {
         return hasRole('youth_no_asistencia');
     };
 
+    const isTreasurer = () => {
+        return hasRole('treasurer');
+    };
+
     const value = {
         currentUser,
         login,
@@ -73,6 +83,7 @@ export const AuthProvider = ({ children }) => {
         isMember,
         isYouthLiderazgo,
         isYouthNoAsistencia,
+        isTreasurer,
         loading
     };
 

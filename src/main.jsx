@@ -2,7 +2,10 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
 import './index.css'
-import { ThemeProvider } from './context/ThemeContext'
+import { ThemeProvider } from './context/ThemeContext';
+import { GoogleOAuthProvider } from '@react-oauth/google';
+
+const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '1234567890-test.apps.googleusercontent.com';
 
 // Register Service Worker with cache busting
 if ('serviceWorker' in navigator) {
@@ -39,9 +42,9 @@ if ('serviceWorker' in navigator) {
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(
-    <React.StrictMode>
+    <GoogleOAuthProvider clientId={clientId}>
         <ThemeProvider>
             <App />
         </ThemeProvider>
-    </React.StrictMode>,
+    </GoogleOAuthProvider>
 )

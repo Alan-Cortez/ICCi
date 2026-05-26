@@ -152,11 +152,17 @@ export const formatGroupReport = (allAttendance, allCompliance, allYouth, period
         };
     });
 
+    const validOnly = allAttendance.filter(r => !r.es_reunion_cancelada);
+    const overallAttendance = generateAttendanceStats(validOnly);
+
     return {
         period,
+        startDate: uniqueDates.length ? [...uniqueDates].sort()[0] : null,
+        endDate: uniqueDates.length ? [...uniqueDates].sort().slice(-1)[0] : null,
+        attendanceRecords: allAttendance,
         youthReports,
         overallStats: {
-            attendance: generateAttendanceStats(allAttendance),
+            attendance: overallAttendance,
             compliance: generateComplianceStats(allCompliance),
             totalMeetings: globalTotalDays
         }

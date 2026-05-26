@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Loader2, Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { GoogleLogin } from '@react-oauth/google';
+import { loginWithGoogle } from '../services/authService';
 
 export const Login = () => {
     const navigate = useNavigate();
@@ -25,6 +27,23 @@ export const Login = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleGoogleSuccess = async (credentialResponse) => {
+        setError('');
+        setLoading(true);
+        try {
+            await loginWithGoogle(credentialResponse.credential);
+            navigate('/');
+        } catch (err) {
+            setError(err.message || 'Error al iniciar sesión con Google');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleGoogleError = () => {
+        setError('Error al conectar con Google. Intenta de nuevo.');
     };
 
     return (
@@ -135,14 +154,35 @@ export const Login = () => {
                         </button>
                     </form>
 
+                    <div className="mt-6 flex items-center">
+                        <div className="flex-grow border-t border-gray-200 dark:border-gray-700"></div>
+                        <span className="flex-shrink-0 mx-4 text-sm text-gray-500 dark:text-gray-400">O continuar con</span>
+                        <div className="flex-grow border-t border-gray-200 dark:border-gray-700"></div>
+                    </div>
+
+                    <div className="mt-6 flex justify-center">
+                        <GoogleLogin
+                            onSuccess={handleGoogleSuccess}
+                            onError={handleGoogleError}
+                            theme={document.documentElement.classList.contains('dark') ? 'filled_black' : 'outline'}
+                            size="large"
+                            text="continue_with"
+                            shape="rectangular"
+                            width="380"
+                        />
+                    </div>
+
                     {/* Footer */}
                     <div className="mt-8 pt-6 border-t border-gray-100 dark:border-gray-700/50 text-center">
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                            ¿Problemas para acceder?
+                        <Link
+                            to="/forgot-password"
+                            className="text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-500 transition-colors block"
+                        >
+                            ¿Olvidaste tu contraseña?
+                        </Link>
+                        <p className="text-xs text-gray-400 dark:text-gray-500 mt-3">
+                            ¿Otros problemas? Contacta al administrador
                         </p>
-                        <a href="#" className="text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-500 transition-colors mt-1 block">
-                            Contacta al administrador del sistema
-                        </a>
                     </div>
                 </div>
             </div>

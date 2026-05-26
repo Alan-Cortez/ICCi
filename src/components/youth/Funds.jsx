@@ -28,7 +28,7 @@ export const Funds = ({ ministryId }) => {
             setLoading(true);
             const [balanceData, transData] = await Promise.all([
                 getCurrentBalance(ministryId),
-                getAllTransactions(ministryId)
+                getAllTransactions({ ministryId })
             ]);
             setBalance(balanceData);
             setTransactions(transData);
@@ -58,7 +58,7 @@ export const Funds = ({ ministryId }) => {
                 );
                 toast.info('✋ Transacción enviada a revisión por el encargado.');
             } else {
-                await addTransaction(tipo, parseFloat(monto), concepto, fecha, ministryId);
+                await addTransaction({ tipo, monto: parseFloat(monto), concepto, fecha, ministryId });
                 toast.success('Transacción registrada exitosamente');
                 loadData();
             }

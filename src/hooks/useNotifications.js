@@ -2,8 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { notificationService } from '../services/notificationService';
 
-// Clave pública VAPID (Generada por Antigravity)
-const VAPID_PUBLIC_KEY = 'BL60me1E02DywvWA4ymTdyNHaUd6s_HCvtqh9zl25ayz7qxSve2htVJN3QNFry7vbwZyZ6T1AuFeKpWy-5r-L8M';
+const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY || '';
 
 /**
  * Función de utilidad para convertir la clave VAPID de base64 a Uint8Array
@@ -67,6 +66,11 @@ export const useNotifications = () => {
       setPermission(result);
 
       if (result !== 'granted') return;
+
+      if (!VAPID_PUBLIC_KEY) {
+        console.warn('VITE_VAPID_PUBLIC_KEY no configurada');
+        return;
+      }
 
       const registration = await navigator.serviceWorker.ready;
       

@@ -1,68 +1,64 @@
-import tursoClient from '../database/turso';
+import { apiFetch, setAuthSession, clearAuthSession, getStoredUser, getAuthToken } from '../lib/apiClient';
 
-// Login - Autenticar usuario
 export const login = async (email, password) => {
-    try {
-        const result = await tursoClient.execute({
-            sql: `SELECT id, email, role, nombre, ministry_id FROM users WHERE email = ? AND password = ?`,
-            args: [email, password]
-        });
-
-        if (result.rows.length === 0) {
-            throw new Error('Credenciales inválidas');
-        }
-
-        const user = result.rows[0];
-
-        // Guardar en localStorage
-        localStorage.setItem('currentUser', JSON.stringify(user));
-
-        return user;
-    } catch (error) {
-        console.error('Error en login:', error);
-        throw error;
-    }
+  const { token, user } = await apiFetch('/api/auth/login', {
+    method: 'POST',
+    body: { email, password },
+  });
+  setAuthSession(token, user);
+  return user;
 };
 
-// Logout - Cerrar sesión
 export const logout = () => {
-    localStorage.removeItem('currentUser');
+  clearAuthSession();
 };
 
-// Obtener usuario actual
-export const getCurrentUser = () => {
-    const userStr = localStorage.getItem('currentUser');
-    if (!userStr) return null;
+export const getCurrentUser = () => getStoredUser();
 
-    try {
-        return JSON.parse(userStr);
-    } catch {
-        return null;
-    }
+export const validateSession = async () => {
+  const token = getAuthToken();
+  if (!token) return null;
+  try {
+    const { user } = await apiFetch('/api/auth/me', { method: 'GET' });
+    setAuthSession(token, user);
+    return user;
+  } catch {
+    clearAuthSession();
+    return null;
+  }
 };
 
-// Verificar si está autenticado
-export const isAuthenticated = () => {
-    return getCurrentUser() !== null;
-};
+export const isAuthenticated = () => getCurrentUser() !== null;
 
-// Verificar si tiene un rol específico
 export const hasRole = (role) => {
-    const user = getCurrentUser();
-    return user && user.role === role;
+  const user = getCurrentUser();
+  return user && String(user.role).toLowerCase() === String(role).toLowerCase();
 };
 
-// Verificar si es admin
-export const isAdmin = () => {
-    return hasRole('admin');
+export const isAdmin = () => hasRole('admin');
+export const isLeader = () => hasRole('leader');
+export const isMember = () => hasRole('member');
+export const isTreasurer = () => hasRole('treasurer');
+
+export const loginWithGoogle = async (credential) => {
+  const { token, user } = await apiFetch('/api/auth/google', {
+    method: 'POST',
+    body: { credential },
+  });
+  setAuthSession(token, user);
+  return user;
 };
 
-// Verificar si es líder
-export const isLeader = () => {
-    return hasRole('leader');
+export const forgotPassword = async (email) => {
+  return apiFetch('/api/auth/forgot-password', {
+    method: 'POST',
+    body: { email },
+  });
 };
 
-// Verificar si es miembro
-export const isMember = () => {
-    return hasRole('member');
+export const resetPassword = async (token, password) => {
+  return apiFetch('/api/auth/reset-password', {
+    method: 'POST',
+    body: { token, password },
+  });
 };
