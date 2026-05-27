@@ -154,6 +154,8 @@ export const Login = () => {
                         </button>
                     </form>
 
+                    {import.meta.env.VITE_GOOGLE_CLIENT_ID && (
+                    <>
                     <div className="mt-6 flex items-center">
                         <div className="flex-grow border-t border-gray-200 dark:border-gray-700"></div>
                         <span className="flex-shrink-0 mx-4 text-sm text-gray-500 dark:text-gray-400">O continuar con</span>
@@ -171,6 +173,8 @@ export const Login = () => {
                             width="380"
                         />
                     </div>
+                    </>
+                    )}
 
                     {/* Footer */}
                     <div className="mt-8 pt-6 border-t border-gray-100 dark:border-gray-700/50 text-center">

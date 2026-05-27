@@ -5,7 +5,7 @@ import './index.css'
 import { ThemeProvider } from './context/ThemeContext';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 
-const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '1234567890-test.apps.googleusercontent.com';
+const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
 
 // Register Service Worker with cache busting
 if ('serviceWorker' in navigator) {
@@ -41,10 +41,14 @@ if ('serviceWorker' in navigator) {
     });
 }
 
+const AppTree = (
+    <ThemeProvider>
+        <App />
+    </ThemeProvider>
+);
+
 ReactDOM.createRoot(document.getElementById('root')).render(
-    <GoogleOAuthProvider clientId={clientId}>
-        <ThemeProvider>
-            <App />
-        </ThemeProvider>
-    </GoogleOAuthProvider>
+    clientId
+        ? <GoogleOAuthProvider clientId={clientId}>{AppTree}</GoogleOAuthProvider>
+        : AppTree
 )
