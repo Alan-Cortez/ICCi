@@ -43,4 +43,22 @@ export const notificationOperations = {
       return { success: true };
     },
   },
+  'notifications.testPush': {
+    async handler(db, user, args) {
+      const { sendPushToUsers } = await import('../lib/push.js');
+      const payload = {
+        title: '¡Push de prueba funciona!',
+        body: 'El sistema de notificaciones está configurado correctamente.',
+        url: '/notifications',
+      };
+      
+      const result = await sendPushToUsers([user.id], payload);
+      
+      if (result.sent > 0) {
+        return { success: true, message: 'Notificación enviada' };
+      } else {
+        throw new Error('No se pudo enviar la notificación. ¿Estás suscrito?');
+      }
+    },
+  },
 };

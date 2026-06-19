@@ -164,10 +164,11 @@ export const Reports = ({ ministryId }) => {
     }, [reportData]);
 
     const handleExportPDF = () => {
-        if (!reportData) return;
-        const startDate = reportData.startDate || periodRange.start;
-        const endDate = reportData.endDate || periodRange.end;
-        exportGroupReportToPDF(reportData.youthReports, startDate, endDate, `Reporte ${periodLabel}`);
+        if (!reportData?.youthReports?.length) return;
+        const startDate = periodRange.start || reportData.startDate;
+        const endDate = periodRange.end || reportData.endDate;
+        const filename = `reporte_jovenes_${periodLabel.replace(/\s+/g, '_')}`;
+        exportGroupReportToPDF(sortedYouth, startDate, endDate, `Reporte ${periodLabel}`, filename);
     };
 
     const handleExportExcel = () => {

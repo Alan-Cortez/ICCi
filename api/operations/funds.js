@@ -6,8 +6,53 @@ export const fundOperations = {
     async handler(db, user, args) {
       requireAdminOrTreasurer(user);
       const { tipo, monto, concepto, categoria, fecha, ministryId, registradoPor } = args;
-      return insert(db, `INSERT INTO funds (tipo, monto, concepto, categoria, fecha, ministry_id, registrado_por) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      const result = await insert(db, `INSERT INTO funds (tipo, monto, concepto, categoria, fecha, ministry_id, registrado_por) VALUES (?, ?, ?, ?, ?, ?, ?)`,
         [tipo, monto, concepto, categoria || null, fecha, ministryId ?? null, registradoPor ?? null]);
+
+      // --- Notificaciones ---
+      try {
+        const { rows: rowsFn, run: runFn } = await import('./helpers.js');
+        const { sendPushToUsers } = await import('../lib/push.js');
+        
+        let targetUsersQuery = "SELECT id FROM users WHERE role = 'admin'";
+        let targetUsersArgs = [];
+        let ministryName = '';
+
+        if (ministryId) {
+          targetUsersQuery += ' OR ministry_id = ?';
+          targetUsersArgs.push(ministryId);
+          const minRows = await rowsFn(db, 'SELECT nombre FROM ministries WHERE id = ?', [ministryId]);
+          if (minRows.length > 0) ministryName = ` de ${minRows[0].nombre}`;
+        }
+
+        const usersToNotify = await rowsFn(db, targetUsersQuery, targetUsersArgs);
+        const userIds = usersToNotify.map(u => u.id);
+
+        const tipoStr = tipo === 'ingreso' ? 'Ingreso' : 'Salida';
+        const payload = {
+          title: `Nuevo ${tipoStr} Registrado`,
+          body: `Se registró un ${tipo} de $${monto} para: ${concepto}${ministryName}`,
+          url: '/treasury',
+        };
+
+        // Enviar Web Push
+        sendPushToUsers(userIds, payload).catch(console.error);
+
+        // Guardar Notificación In-App
+        for (const u of userIds) {
+          // Evitar notificar al mismo usuario que lo registró si queremos, pero lo dejamos simple.
+          await runFn(db, 'INSERT INTO notifications (user_id, titulo, mensaje, tipo) VALUES (?, ?, ?, ?)', [
+            u,
+            payload.title,
+            payload.body,
+            'sistema'
+          ]);
+        }
+      } catch (err) {
+        console.error('Error enviando notificaciones de fondos:', err);
+      }
+      
+      return result;
     },
   },
   'funds.getCurrentBalance': {

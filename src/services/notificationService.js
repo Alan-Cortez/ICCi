@@ -32,6 +32,10 @@ export const notificationService = {
   async removePushSubscription(userId, subscription) {
     return apiExecute('notifications.removePushSubscription', { userId, subscription });
   },
+
+  async testPush() {
+    return apiExecute('notifications.testPush', {});
+  },
 };
 
 export default notificationService;

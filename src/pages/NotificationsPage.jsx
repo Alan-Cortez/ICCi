@@ -8,7 +8,7 @@ import { motion } from 'framer-motion';
 
 export const NotificationsPage = () => {
     const navigate = useNavigate();
-    const { notifications, loading, markAsRead, markAllAsRead, refresh } = useNotifications();
+    const { notifications, loading, markAsRead, markAllAsRead, refresh, permission, subscribeToPush } = useNotifications();
     const [searchTerm, setSearchTerm] = useState('');
 
     const filteredNotifications = notifications.filter(n =>
@@ -52,6 +52,30 @@ export const NotificationsPage = () => {
                     >
                         <Loader2 className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
                     </button>
+                    {permission !== 'granted' ? (
+                        <button
+                            onClick={subscribeToPush}
+                            className="px-4 py-2 bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-800/40 transition-colors text-sm font-bold"
+                        >
+                            Activar Notificaciones Push
+                        </button>
+                    ) : (
+                        <button
+                            onClick={async () => {
+                                try {
+                                    const { notificationService } = await import('../services/notificationService');
+                                    await notificationService.testPush();
+                                    alert('Notificación enviada. Deberías recibirla en un momento.');
+                                } catch (error) {
+                                    alert(error.message);
+                                }
+                            }}
+                            className="px-4 py-2 bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-400 rounded-lg hover:bg-green-100 dark:hover:bg-green-800/40 transition-colors text-sm font-bold flex items-center gap-2"
+                        >
+                            <Bell className="w-4 h-4" />
+                            Probar Push
+                        </button>
+                    )}
                     <button
                         onClick={handleMarkAllAsRead}
                         className="px-4 py-2 bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-800/40 transition-colors text-sm font-bold flex items-center gap-2"

@@ -1,6 +1,8 @@
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import { jsPDF } from 'jspdf';
+import { autoTable } from 'jspdf-autotable';
 import { formatDate } from './dateHelpers';
+
+const addTable = (doc, options) => autoTable(doc, options);
 
 /**
  * Exporta el perfil individual de un joven a PDF
@@ -67,7 +69,7 @@ export const exportYouthProfileToPDF = (youth, attendanceRecords, complianceReco
         ['Puntualidad', `${stats.punctualityPercentage}%`]
     ];
 
-    doc.autoTable({
+    addTable(doc, {
         startY: yPos,
         head: [['Indicador', 'Porcentaje']],
         body: statsData,
@@ -92,7 +94,7 @@ export const exportYouthProfileToPDF = (youth, attendanceRecords, complianceReco
             record.es_evento_especial ? 'Sí' : 'No'
         ]);
 
-        doc.autoTable({
+        addTable(doc, {
             startY: yPos,
             head: [['Fecha', 'Estado', 'Puntual', 'Evento Especial']],
             body: attendanceData,
@@ -125,9 +127,14 @@ export const exportYouthProfileToPDF = (youth, attendanceRecords, complianceReco
 /**
  * Exporta el reporte grupal a PDF
  */
-export const exportGroupReportToPDF = (youthList, startDate, endDate, title = 'Reporte Grupal') => {
+export const exportGroupReportToPDF = (youthList, startDate, endDate, title = 'Reporte Grupal', filename) => {
+    if (!youthList?.length) return;
+
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.width;
+    const periodText = startDate && endDate
+        ? `${formatDate(startDate)} - ${formatDate(endDate)}`
+        : title;
 
     // Header
     doc.setFillColor(59, 130, 246);
@@ -140,58 +147,58 @@ export const exportGroupReportToPDF = (youthList, startDate, endDate, title = 'R
 
     doc.setFontSize(12);
     doc.setFont(undefined, 'normal');
-    doc.text(`Periodo: ${formatDate(startDate)} - ${formatDate(endDate)}`, pageWidth / 2, 28, { align: 'center' });
+    doc.text(`Periodo: ${periodText}`, pageWidth / 2, 28, { align: 'center' });
 
     doc.setTextColor(0, 0, 0);
 
-    // Tabla de jóvenes
-    const tableData = youthList.map(youth => [
-        `${youth.nombre} ${youth.apellido_paterno}`,
+    const tableData = youthList.map((youth) => [
+        youth.nombre,
+        `${youth.attendedDays ?? 0} / ${youth.totalDays ?? 0}`,
         `${youth.attendancePercentage || 0}%`,
         `${youth.biblePercentage || 0}%`,
         `${youth.notesPercentage || 0}%`,
-        `${youth.punctualityPercentage || 0}%`
+        `${youth.punctualityPercentage || 0}%`,
     ]);
 
-    doc.autoTable({
+    addTable(doc, {
         startY: 50,
-        head: [['Nombre', 'Asistencia', 'Biblia', 'Apuntes', 'Puntualidad']],
+        head: [['Nombre', 'Reuniones', 'Asistencia', 'Biblia', 'Apuntes', 'Puntualidad']],
         body: tableData,
         theme: 'grid',
         headStyles: { fillColor: [59, 130, 246], fontStyle: 'bold' },
         margin: { left: 14, right: 14 },
-        styles: { fontSize: 10 }
+        styles: { fontSize: 9 },
+        columnStyles: { 0: { cellWidth: 55 } },
     });
 
-    // Estadísticas generales
     const yPos = doc.lastAutoTable.finalY + 15;
 
     doc.setFontSize(14);
     doc.setFont(undefined, 'bold');
     doc.text('Estadísticas Generales', 14, yPos);
 
-    const avgAttendance = youthList.reduce((sum, y) => sum + (y.attendancePercentage || 0), 0) / youthList.length;
-    const avgBible = youthList.reduce((sum, y) => sum + (y.biblePercentage || 0), 0) / youthList.length;
-    const avgNotes = youthList.reduce((sum, y) => sum + (y.notesPercentage || 0), 0) / youthList.length;
-    const avgPunctuality = youthList.reduce((sum, y) => sum + (y.punctualityPercentage || 0), 0) / youthList.length;
+    const count = youthList.length;
+    const avgAttendance = youthList.reduce((sum, y) => sum + (y.attendancePercentage || 0), 0) / count;
+    const avgBible = youthList.reduce((sum, y) => sum + (y.biblePercentage || 0), 0) / count;
+    const avgNotes = youthList.reduce((sum, y) => sum + (y.notesPercentage || 0), 0) / count;
+    const avgPunctuality = youthList.reduce((sum, y) => sum + (y.punctualityPercentage || 0), 0) / count;
 
     const statsData = [
         ['Promedio de Asistencia', `${avgAttendance.toFixed(1)}%`],
         ['Promedio de Biblia', `${avgBible.toFixed(1)}%`],
         ['Promedio de Apuntes', `${avgNotes.toFixed(1)}%`],
         ['Promedio de Puntualidad', `${avgPunctuality.toFixed(1)}%`],
-        ['Total de Jóvenes', youthList.length.toString()]
+        ['Total de Jóvenes', count.toString()],
     ];
 
-    doc.autoTable({
+    addTable(doc, {
         startY: yPos + 5,
         body: statsData,
         theme: 'plain',
         margin: { left: 14, right: 14 },
-        styles: { fontSize: 11 }
+        styles: { fontSize: 11 },
     });
 
-    // Footer
     const pageCount = doc.internal.getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
         doc.setPage(i);
@@ -205,8 +212,15 @@ export const exportGroupReportToPDF = (youthList, startDate, endDate, title = 'R
         );
     }
 
-    // Descargar
-    doc.save(`reporte_grupal_${startDate}_${endDate}.pdf`);
+    const safeName = (filename || `reporte_jovenes_${startDate || 'periodo'}_${endDate || ''}`)
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-zA-Z0-9_-]+/g, '_')
+        .replace(/_+/g, '_')
+        .replace(/^_|_$/g, '')
+        .toLowerCase();
+
+    doc.save(`${safeName || 'reporte_jovenes'}.pdf`);
 };
 
 /**
@@ -238,7 +252,7 @@ export const exportMemberListToPDF = (memberList, title = 'Lista de Miembros') =
         m.fecha_nacimiento ? formatDate(m.fecha_nacimiento) : 'N/A'
     ]);
 
-    doc.autoTable({
+    addTable(doc, {
         startY: 50,
         head: [['Nombre Completo', 'Teléfono', 'Género', 'Cumpleaños']],
         body: tableData,
