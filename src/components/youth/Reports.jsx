@@ -12,8 +12,8 @@ import {
     generateAttendanceTrends
 } from '../../services/reportService';
 import { getToday, getDateRange, formatDate, getMonthName } from '../../utils/dateHelpers';
-import { exportGroupReportToPDF } from '../../utils/pdfExport';
 import { exportGroupReportToExcel } from '../../utils/excelExport';
+import { toast } from 'react-toastify';
 import {
     LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
     PieChart as RePieChart, Pie, Cell
@@ -163,12 +163,19 @@ export const Reports = ({ ministryId }) => {
         ].filter((d) => d.value > 0);
     }, [reportData]);
 
-    const handleExportPDF = () => {
+    const handleExportPDF = async () => {
         if (!reportData?.youthReports?.length) return;
-        const startDate = periodRange.start || reportData.startDate;
-        const endDate = periodRange.end || reportData.endDate;
-        const filename = `reporte_jovenes_${periodLabel.replace(/\s+/g, '_')}`;
-        exportGroupReportToPDF(sortedYouth, startDate, endDate, `Reporte ${periodLabel}`, filename);
+        try {
+            const { exportGroupReportToPDF } = await import('../../utils/pdfExport');
+            const startDate = periodRange.start || reportData.startDate;
+            const endDate = periodRange.end || reportData.endDate;
+            const filename = `reporte_jovenes_${periodLabel.replace(/\s+/g, '_')}`;
+            exportGroupReportToPDF(sortedYouth, startDate, endDate, `Reporte ${periodLabel}`, filename);
+            toast.success('PDF descargado');
+        } catch (err) {
+            console.error('Error al exportar PDF:', err);
+            toast.error('No se pudo generar el PDF. Intenta de nuevo.');
+        }
     };
 
     const handleExportExcel = () => {

@@ -1,8 +1,15 @@
 import { jsPDF } from 'jspdf';
-import { autoTable } from 'jspdf-autotable';
+import { applyPlugin } from 'jspdf-autotable';
+import { saveAs } from 'file-saver';
 import { formatDate } from './dateHelpers';
 
-const addTable = (doc, options) => autoTable(doc, options);
+applyPlugin(jsPDF);
+
+const downloadPdf = (doc, filename) => {
+    saveAs(doc.output('blob'), filename.endsWith('.pdf') ? filename : `${filename}.pdf`);
+};
+
+const tableFinalY = (doc, fallback = 50) => doc.lastAutoTable?.finalY ?? fallback;
 
 /**
  * Exporta el perfil individual de un joven a PDF
@@ -69,7 +76,7 @@ export const exportYouthProfileToPDF = (youth, attendanceRecords, complianceReco
         ['Puntualidad', `${stats.punctualityPercentage}%`]
     ];
 
-    addTable(doc, {
+    doc.autoTable({
         startY: yPos,
         head: [['Indicador', 'Porcentaje']],
         body: statsData,
@@ -78,7 +85,7 @@ export const exportYouthProfileToPDF = (youth, attendanceRecords, complianceReco
         margin: { left: 14, right: 14 }
     });
 
-    yPos = doc.lastAutoTable.finalY + 10;
+    yPos = tableFinalY(doc, yPos) + 10;
 
     // Historial de Asistencia (últimos 10 registros)
     if (attendanceRecords && attendanceRecords.length > 0) {
@@ -94,7 +101,7 @@ export const exportYouthProfileToPDF = (youth, attendanceRecords, complianceReco
             record.es_evento_especial ? 'Sí' : 'No'
         ]);
 
-        addTable(doc, {
+        doc.autoTable({
             startY: yPos,
             head: [['Fecha', 'Estado', 'Puntual', 'Evento Especial']],
             body: attendanceData,
@@ -103,7 +110,7 @@ export const exportYouthProfileToPDF = (youth, attendanceRecords, complianceReco
             margin: { left: 14, right: 14 }
         });
 
-        yPos = doc.lastAutoTable.finalY + 10;
+        yPos = tableFinalY(doc, yPos) + 10;
     }
 
     // Footer
@@ -120,8 +127,7 @@ export const exportYouthProfileToPDF = (youth, attendanceRecords, complianceReco
         );
     }
 
-    // Descargar
-    doc.save(`${youth.nombre}_${youth.apellido_paterno}_perfil.pdf`);
+    downloadPdf(doc, `${youth.nombre}_${youth.apellido_paterno}_perfil.pdf`);
 };
 
 /**
@@ -130,7 +136,7 @@ export const exportYouthProfileToPDF = (youth, attendanceRecords, complianceReco
 export const exportGroupReportToPDF = (youthList, startDate, endDate, title = 'Reporte Grupal', filename) => {
     if (!youthList?.length) return;
 
-    const doc = new jsPDF();
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
     const pageWidth = doc.internal.pageSize.width;
     const periodText = startDate && endDate
         ? `${formatDate(startDate)} - ${formatDate(endDate)}`
@@ -160,18 +166,25 @@ export const exportGroupReportToPDF = (youthList, startDate, endDate, title = 'R
         `${youth.punctualityPercentage || 0}%`,
     ]);
 
-    addTable(doc, {
+    doc.autoTable({
         startY: 50,
         head: [['Nombre', 'Reuniones', 'Asistencia', 'Biblia', 'Apuntes', 'Puntualidad']],
         body: tableData,
         theme: 'grid',
         headStyles: { fillColor: [59, 130, 246], fontStyle: 'bold' },
-        margin: { left: 14, right: 14 },
-        styles: { fontSize: 9 },
-        columnStyles: { 0: { cellWidth: 55 } },
+        margin: { left: 10, right: 10 },
+        styles: { fontSize: 8, overflow: 'linebreak', cellWidth: 'wrap' },
+        columnStyles: {
+            0: { cellWidth: 90 },
+            1: { cellWidth: 28, halign: 'center' },
+            2: { cellWidth: 28, halign: 'center' },
+            3: { cellWidth: 24, halign: 'center' },
+            4: { cellWidth: 24, halign: 'center' },
+            5: { cellWidth: 28, halign: 'center' },
+        },
     });
 
-    const yPos = doc.lastAutoTable.finalY + 15;
+    const yPos = tableFinalY(doc, 50) + 15;
 
     doc.setFontSize(14);
     doc.setFont(undefined, 'bold');
@@ -191,7 +204,7 @@ export const exportGroupReportToPDF = (youthList, startDate, endDate, title = 'R
         ['Total de Jóvenes', count.toString()],
     ];
 
-    addTable(doc, {
+    doc.autoTable({
         startY: yPos + 5,
         body: statsData,
         theme: 'plain',
@@ -220,7 +233,7 @@ export const exportGroupReportToPDF = (youthList, startDate, endDate, title = 'R
         .replace(/^_|_$/g, '')
         .toLowerCase();
 
-    doc.save(`${safeName || 'reporte_jovenes'}.pdf`);
+    downloadPdf(doc, `${safeName || 'reporte_jovenes'}.pdf`);
 };
 
 /**
@@ -252,7 +265,7 @@ export const exportMemberListToPDF = (memberList, title = 'Lista de Miembros') =
         m.fecha_nacimiento ? formatDate(m.fecha_nacimiento) : 'N/A'
     ]);
 
-    addTable(doc, {
+    doc.autoTable({
         startY: 50,
         head: [['Nombre Completo', 'Teléfono', 'Género', 'Cumpleaños']],
         body: tableData,
@@ -261,5 +274,5 @@ export const exportMemberListToPDF = (memberList, title = 'Lista de Miembros') =
         margin: { left: 14, right: 14 }
     });
 
-    doc.save(`${title.replace(/\s+/g, '_').toLowerCase()}.pdf`);
+    downloadPdf(doc, `${title.replace(/\s+/g, '_').toLowerCase()}.pdf`);
 };

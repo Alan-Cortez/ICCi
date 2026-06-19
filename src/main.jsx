@@ -11,7 +11,7 @@ const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         // Usamos un query string para forzar al navegador a ver un archivo "nuevo"
-        navigator.serviceWorker.register('/sw.js?v=6')
+        navigator.serviceWorker.register('/sw.js?v=8')
             .then((registration) => {
                 console.log('✅ Service Worker registered:', registration.scope);
 
