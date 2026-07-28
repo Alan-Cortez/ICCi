@@ -1,6 +1,6 @@
-import { getDb } from '../lib/turso.js';
-import { hashPassword } from '../lib/password.js';
-import { sendJson, parseBody } from '../lib/http.js';
+import { getDb } from '../_lib/turso.js';
+import { hashPassword } from '../_lib/password.js';
+import { sendJson, parseBody } from '../_lib/http.js';
 
 const MIN_PASSWORD_LENGTH = 8;
 

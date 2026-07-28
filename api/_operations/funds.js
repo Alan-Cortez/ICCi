@@ -1,5 +1,5 @@
 import { rows, insert, run } from './helpers.js';
-import { requireAdminOrTreasurer } from '../lib/roles.js';
+import { requireAdminOrTreasurer } from '../_lib/roles.js';
 
 export const fundOperations = {
   'funds.addTransaction': {
@@ -12,7 +12,7 @@ export const fundOperations = {
       // --- Notificaciones ---
       try {
         const { rows: rowsFn, run: runFn } = await import('./helpers.js');
-        const { sendPushToUsers } = await import('../lib/push.js');
+        const { sendPushToUsers } = await import('../_lib/push.js');
         
         let targetUsersQuery = "SELECT id FROM users WHERE role = 'admin'";
         let targetUsersArgs = [];

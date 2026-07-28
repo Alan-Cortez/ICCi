@@ -1,5 +1,5 @@
-import { initializeSchema } from './lib/schema.js';
-import { sendJson } from './lib/http.js';
+import { initializeSchema } from './_lib/schema.js';
+import { sendJson } from './_lib/http.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST' && req.method !== 'GET') {

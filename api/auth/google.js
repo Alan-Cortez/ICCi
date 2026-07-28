@@ -1,6 +1,6 @@
-import { getDb } from '../lib/turso.js';
-import { sendJson, parseBody } from '../lib/http.js';
-import { signToken } from '../lib/jwt.js';
+import { getDb } from '../_lib/turso.js';
+import { sendJson, parseBody } from '../_lib/http.js';
+import { signToken } from '../_lib/jwt.js';
 import { OAuth2Client } from 'google-auth-library';
 
 export default async function handler(req, res) {

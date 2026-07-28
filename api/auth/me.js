@@ -1,5 +1,5 @@
-import { verifyToken } from '../lib/jwt.js';
-import { sendJson, getBearerToken } from '../lib/http.js';
+import { verifyToken } from '../_lib/jwt.js';
+import { sendJson, getBearerToken } from '../_lib/http.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {

@@ -1,6 +1,6 @@
 import { rows, insert, run, row } from './helpers.js';
-import { requireAdmin } from '../lib/roles.js';
-import { hashPassword } from '../lib/password.js';
+import { requireAdmin } from '../_lib/roles.js';
+import { hashPassword } from '../_lib/password.js';
 
 export const userOperations = {
   'users.getAll': {

@@ -45,7 +45,7 @@ export const notificationOperations = {
   },
   'notifications.testPush': {
     async handler(db, user, args) {
-      const { sendPushToUsers } = await import('../lib/push.js');
+      const { sendPushToUsers } = await import('../_lib/push.js');
       const payload = {
         title: '¡Push de prueba funciona!',
         body: 'El sistema de notificaciones está configurado correctamente.',

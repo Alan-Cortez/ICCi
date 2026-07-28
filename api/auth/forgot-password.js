@@ -1,6 +1,6 @@
-import { getDb } from '../lib/turso.js';
-import { sendJson, parseBody } from '../lib/http.js';
-import { sendPasswordResetEmail } from '../lib/email.js';
+import { getDb } from '../_lib/turso.js';
+import { sendJson, parseBody } from '../_lib/http.js';
+import { sendPasswordResetEmail } from '../_lib/email.js';
 import crypto from 'crypto';
 
 const TOKEN_EXPIRY_MINUTES = 30;

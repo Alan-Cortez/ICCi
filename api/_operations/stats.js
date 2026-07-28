@@ -1,5 +1,5 @@
 import { rows } from './helpers.js';
-import { requireAdmin } from '../lib/roles.js';
+import { requireAdmin } from '../_lib/roles.js';
 
 export const statsOperations = {
   'stats.getGeneral': {

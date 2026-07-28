@@ -1,5 +1,5 @@
 import { rows, row, insert, run } from './helpers.js';
-import { requireAdmin } from '../lib/roles.js';
+import { requireAdmin } from '../_lib/roles.js';
 
 export const memberOperations = {
   'members.create': {
@@ -10,7 +10,7 @@ export const memberOperations = {
         
       // Notificar a los admins sobre el nuevo miembro
       const memberName = `${nombre} ${apellido_paterno}`;
-      const { sendPushToAdmins } = await import('../lib/push.js');
+      const { sendPushToAdmins } = await import('../_lib/push.js');
       
       const payload = {
         title: 'Nuevo Miembro Registrado',

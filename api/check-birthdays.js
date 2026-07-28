@@ -1,6 +1,6 @@
-import { getDb } from './lib/turso.js';
-import { sendPushToUsers } from './lib/push.js';
-import { sendJson, getBearerToken } from './lib/http.js';
+import { getDb } from './_lib/turso.js';
+import { sendPushToUsers } from './_lib/push.js';
+import { sendJson, getBearerToken } from './_lib/http.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'GET' && req.method !== 'POST') {

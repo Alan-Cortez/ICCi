@@ -1,8 +1,8 @@
-import { getDb } from './lib/turso.js';
-import { verifyToken } from './lib/jwt.js';
-import { requireAuth, ApiError } from './lib/roles.js';
-import { sendJson, getBearerToken, parseBody } from './lib/http.js';
-import { getOperation } from './operations/index.js';
+import { getDb } from './_lib/turso.js';
+import { verifyToken } from './_lib/jwt.js';
+import { requireAuth, ApiError } from './_lib/roles.js';
+import { sendJson, getBearerToken, parseBody } from './_lib/http.js';
+import { getOperation } from './_operations/index.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {

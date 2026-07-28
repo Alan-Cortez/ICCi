@@ -1,5 +1,5 @@
 import { rows, row, insert, run } from './helpers.js';
-import { requireAdmin } from '../lib/roles.js';
+import { requireAdmin } from '../_lib/roles.js';
 
 function mapSermon(row) {
   if (!row) return null;

@@ -1,8 +1,8 @@
-import { getDb } from '../lib/turso.js';
-import { verifyPassword, isPasswordHashed, upgradePasswordIfNeeded } from '../lib/password.js';
-import { signToken } from '../lib/jwt.js';
-import { sendJson, parseBody } from '../lib/http.js';
-import { checkRateLimit, recordFailedAttempt, resetAttempts } from '../lib/rateLimit.js';
+import { getDb } from '../_lib/turso.js';
+import { verifyPassword, isPasswordHashed, upgradePasswordIfNeeded } from '../_lib/password.js';
+import { signToken } from '../_lib/jwt.js';
+import { sendJson, parseBody } from '../_lib/http.js';
+import { checkRateLimit, recordFailedAttempt, resetAttempts } from '../_lib/rateLimit.js';
 
 /** Formatea milisegundos en texto legible (ej: "14 minutos y 32 segundos") */
 function formatRemainingTime(ms) {
