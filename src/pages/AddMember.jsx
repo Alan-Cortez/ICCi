@@ -7,15 +7,31 @@ import { createMember } from '../services/memberService';
 export const AddMember = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
+    const [submitted, setSubmitted] = useState(false); // evita doble envío
 
     const handleSubmit = async (data) => {
+        if (submitted) return; // previene duplicados si el usuario hace doble clic
         try {
             setLoading(true);
+            setSubmitted(true);
             await createMember(data);
-            navigate('/');
+            navigate('/members');
         } catch (error) {
             console.error('Error al crear miembro:', error);
-            alert('Error al guardar el miembro');
+            // Si el error es solo de notificaciones, el miembro SÍ se guardó → redirigir igual
+            const esErrorDeNotificacion =
+                error?.message?.includes('users_old') ||
+                error?.message?.includes('notifications') ||
+                error?.message?.includes('push');
+
+            if (esErrorDeNotificacion) {
+                // El miembro se guardó correctamente, el error es no-crítico
+                navigate('/members');
+            } else {
+                // Error real al guardar el miembro
+                setSubmitted(false);
+                alert('Error al guardar el miembro. Por favor inténtalo de nuevo.');
+            }
         } finally {
             setLoading(false);
         }

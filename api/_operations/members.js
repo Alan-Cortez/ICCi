@@ -8,27 +8,28 @@ export const memberOperations = {
       const result = await insert(db, `INSERT INTO members (nombre, apellido_paterno, apellido_materno, dia_cumpleanos, mes_cumpleanos, foto, genero, telefono) 
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, [nombre, apellido_paterno, apellido_materno, dia_cumpleanos, mes_cumpleanos, foto, genero, telefono || null]);
         
-      // Notificar a los admins sobre el nuevo miembro
-      const memberName = `${nombre} ${apellido_paterno}`;
-      const { sendPushToAdmins } = await import('../_lib/push.js');
-      
-      const payload = {
-        title: 'Nuevo Miembro Registrado',
-        body: `Se ha registrado a ${memberName} en el sistema.`,
-        url: '/members',
-      };
-      // Enviamos el push a los administradores
-      sendPushToAdmins(payload).catch(console.error);
+      // Notificar a los admins sobre el nuevo miembro (no-crítico: si falla no cancela la creación)
+      try {
+        const memberName = `${nombre} ${apellido_paterno}`;
+        const { sendPushToAdmins } = await import('../_lib/push.js');
+        const payload = {
+          title: 'Nuevo Miembro Registrado',
+          body: `Se ha registrado a ${memberName} en el sistema.`,
+          url: '/members',
+        };
+        sendPushToAdmins(payload).catch(console.error);
 
-      // También creamos notificaciones in-app para los admins
-      const admins = await rows(db, "SELECT id FROM users WHERE role = 'admin'");
-      for (const admin of admins) {
-        await run(db, 'INSERT INTO notifications (user_id, titulo, mensaje, tipo) VALUES (?, ?, ?, ?)', [
-          admin.id,
-          payload.title,
-          payload.body,
-          'sistema'
-        ]);
+        const admins = await rows(db, "SELECT id FROM users WHERE role = 'admin'");
+        for (const admin of admins) {
+          await run(db, 'INSERT INTO notifications (user_id, titulo, mensaje, tipo) VALUES (?, ?, ?, ?)', [
+            admin.id,
+            payload.title,
+            payload.body,
+            'sistema'
+          ]);
+        }
+      } catch (notifError) {
+        console.error('[members.create] Error al enviar notificaciones (no crítico):', notifError.message);
       }
 
       return result;
