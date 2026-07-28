@@ -3,11 +3,10 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Loader2, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { GoogleLogin } from '@react-oauth/google';
-import { loginWithGoogle } from '../services/authService';
 
 export const Login = () => {
     const navigate = useNavigate();
-    const { login } = useAuth();
+    const { login, loginGoogle } = useAuth();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
@@ -33,7 +32,7 @@ export const Login = () => {
         setError('');
         setLoading(true);
         try {
-            await loginWithGoogle(credentialResponse.credential);
+            await loginGoogle(credentialResponse.credential);
             navigate('/');
         } catch (err) {
             setError(err.message || 'Error al iniciar sesión con Google');
