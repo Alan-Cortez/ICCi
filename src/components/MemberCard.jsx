@@ -6,9 +6,29 @@ const MESES = [
     'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
 ];
 
+/**
+ * Genera una URL de avatar ilustrado desde DiceBear.
+ * - Femenino  → estilo "lorelei"  (ilustración femenina)
+ * - Masculino → estilo "adventurer" (ilustración masculina)
+ * - Otro/sin dato → estilo "bottts-neutral" (robot simpático)
+ * La semilla es el nombre completo, así el avatar es siempre el mismo para cada persona.
+ */
+function getAvatarUrl(nombre, apellido, genero) {
+    const seed = encodeURIComponent(`${nombre} ${apellido}`);
+    const generoLower = (genero || '').toLowerCase();
+
+    if (generoLower === 'femenino' || generoLower === 'mujer' || generoLower === 'f') {
+        return `https://api.dicebear.com/9.x/lorelei/svg?seed=${seed}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf&backgroundType=solid`;
+    }
+    if (generoLower === 'masculino' || generoLower === 'hombre' || generoLower === 'm') {
+        return `https://api.dicebear.com/9.x/adventurer/svg?seed=${seed}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf&backgroundType=solid`;
+    }
+    return `https://api.dicebear.com/9.x/bottts-neutral/svg?seed=${seed}&backgroundColor=b6e3f4,c0aede,d1d4f9`;
+}
+
 export const MemberCard = ({ member, onEdit, onDelete }) => {
     const { isAdmin, isLeader } = useAuth();
-    
+
     const handleDelete = () => {
         if (window.confirm(`¿Estás seguro de eliminar a ${member.nombre} ${member.apellido_paterno}?`)) {
             onDelete(member.id);
@@ -18,16 +38,39 @@ export const MemberCard = ({ member, onEdit, onDelete }) => {
     const mesNombre = MESES[member.mes_cumpleanos - 1] || '';
     const canManage = isAdmin() || isLeader();
 
+    const avatarUrl = getAvatarUrl(member.nombre, member.apellido_paterno, member.genero);
+
     return (
         <div className="bg-white dark:bg-gray-800 rounded-xl p-4 mb-4 shadow-md border border-gray-100 dark:border-gray-700 transition-colors">
             <div className="flex flex-row mb-4">
-                {/* Foto del miembro */}
+                {/* Foto / Avatar del miembro */}
                 <div className="mr-4 flex-shrink-0">
                     {member.foto ? (
-                        <img src={member.foto} alt={`${member.nombre} ${member.apellido_paterno}`} className="w-20 h-20 rounded-lg object-cover" />
+                        <img
+                            src={member.foto}
+                            alt={`${member.nombre} ${member.apellido_paterno}`}
+                            className="w-20 h-20 rounded-xl object-cover"
+                        />
                     ) : (
-                        <div className="w-20 h-20 rounded-lg bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-600 dark:text-blue-300 text-2xl font-bold">
-                            {member.nombre.charAt(0)}{member.apellido_paterno.charAt(0)}
+                        <div className="w-20 h-20 rounded-xl overflow-hidden bg-blue-50 dark:bg-gray-700 flex items-center justify-center">
+                            <img
+                                src={avatarUrl}
+                                alt={`Avatar de ${member.nombre}`}
+                                className="w-full h-full object-cover"
+                                loading="lazy"
+                                onError={(e) => {
+                                    // Fallback a iniciales si la imagen falla
+                                    e.target.style.display = 'none';
+                                    e.target.nextSibling.style.display = 'flex';
+                                }}
+                            />
+                            {/* Fallback iniciales (oculto por defecto) */}
+                            <span
+                                style={{ display: 'none' }}
+                                className="w-full h-full items-center justify-center text-blue-600 dark:text-blue-300 text-2xl font-bold"
+                            >
+                                {member.nombre.charAt(0)}{member.apellido_paterno.charAt(0)}
+                            </span>
                         </div>
                     )}
                 </div>

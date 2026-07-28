@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, ArrowLeft, Search } from 'lucide-react';
+import { Plus, ArrowLeft, Search, ArrowUpAZ, ArrowDownAZ } from 'lucide-react';
 import { MemberCard } from '../components/MemberCard';
 import { getAllMembers, deleteMember } from '../services/memberService';
 import { Loader2 } from 'lucide-react';
@@ -13,6 +13,7 @@ export const Members = () => {
     const [filteredMembers, setFilteredMembers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [sortAZ, setSortAZ] = useState(false);
 
     const loadMembers = async () => {
         try {
@@ -33,13 +34,20 @@ export const Members = () => {
 
     useEffect(() => {
         const lowerTerm = searchTerm.toLowerCase();
-        const filtered = members.filter(member =>
+        let filtered = members.filter(member =>
             member.nombre.toLowerCase().includes(lowerTerm) ||
             member.apellido_paterno.toLowerCase().includes(lowerTerm) ||
             member.apellido_materno.toLowerCase().includes(lowerTerm)
         );
+        if (sortAZ) {
+            filtered = [...filtered].sort((a, b) => {
+                const nameA = `${a.nombre} ${a.apellido_paterno}`.toLowerCase();
+                const nameB = `${b.nombre} ${b.apellido_paterno}`.toLowerCase();
+                return nameA.localeCompare(nameB, 'es');
+            });
+        }
         setFilteredMembers(filtered);
-    }, [searchTerm, members]);
+    }, [searchTerm, members, sortAZ]);
 
     const handleEdit = (member) => {
         navigate(`/edit-member/${member.id}`);
@@ -79,12 +87,24 @@ export const Members = () => {
                         >
                             <ArrowLeft className="w-6 h-6 text-gray-600 dark:text-gray-300" />
                         </button>
-                        <div>
+                        <div className="flex-1">
                             <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">
                                 {canManage ? 'Gestionar Miembros' : 'Directorio de Miembros'}
                             </h1>
                             <p className="text-sm text-gray-500 dark:text-gray-400">{members.length} miembros registrados</p>
                         </div>
+                        {/* Botón ordenar A-Z */}
+                        <button
+                            onClick={() => setSortAZ(prev => !prev)}
+                            title={sortAZ ? 'Ordenado A→Z (clic para quitar)' : 'Ordenar A→Z'}
+                            className={`ml-2 p-2 rounded-full border transition-colors ${
+                                sortAZ
+                                    ? 'bg-blue-600 text-white border-blue-600'
+                                    : 'bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600'
+                            }`}
+                        >
+                            {sortAZ ? <ArrowUpAZ className="w-5 h-5" /> : <ArrowDownAZ className="w-5 h-5" />}
+                        </button>
                     </div>
 
                     {/* Buscador */}
@@ -121,7 +141,7 @@ export const Members = () => {
                 )}
             </div>
 
-            {/* Botón flotante para agregar (Visible para todos por petición del usuario) */}
+            {/* Botón flotante para agregar */}
             <button
                 onClick={() => navigate('/add-member')}
                 className="fixed bottom-6 right-6 w-14 h-14 bg-blue-600 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-blue-700 transition-transform hover:scale-105 active:scale-95 border border-white dark:border-gray-800"
