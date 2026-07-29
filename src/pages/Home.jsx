@@ -29,7 +29,8 @@ export const Home = () => {
 
     // UI States
     const [currentDate, setCurrentDate] = useState(new Date());
-    const [sidebarOpen, setSidebarOpen] = useState(true); // Default open on desktop
+    // En móvil arranca cerrado; en tablet/desktop arranca abierto
+    const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 768);
     const [searchTerm, setSearchTerm] = useState('');
 
     const monthNames = [
@@ -65,11 +66,17 @@ export const Home = () => {
         loadData();
     }, [currentDate]);
 
+    // Cierra sidebar en móvil al navegar
+    const goTo = (path) => {
+        if (window.innerWidth < 768) setSidebarOpen(false);
+        navigate(path);
+    };
+
     const handleMinistryClick = (ministry) => {
         if (ministry.nombre.toLowerCase().includes('jóvenes') || ministry.nombre.toLowerCase().includes('jovenes')) {
-            navigate('/youth-ministry');
+            goTo('/youth-ministry');
         } else {
-            navigate(`/ministry/${ministry.id}`);
+            goTo(`/ministry/${ministry.id}`);
         }
     };
 
@@ -93,7 +100,7 @@ export const Home = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex">
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex" style={{ paddingBottom: 'var(--safe-bottom)' }}>
             {/* Offline Indicator */}
             <OfflineIndicator />
 
@@ -118,7 +125,7 @@ export const Home = () => {
 
                     <nav className="flex-1 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
                         <button
-                            onClick={() => navigate('/members')}
+                            onClick={() => goTo('/members')}
                             className={`
                                 w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 transition-colors
                                 ${window.location.pathname === '/members' ? 'bg-blue-50 text-blue-700' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'}
@@ -160,11 +167,11 @@ export const Home = () => {
                         )}
                     </nav>
 
-                    <div className="pt-6 border-t border-gray-100 mt-4 space-y-2">
+                    <div className="pt-6 border-t border-gray-100 dark:border-gray-700 mt-4 space-y-2">
                         {isAdmin() && (
                             <>
                                 <button
-                                    onClick={() => navigate('/sermons')}
+                                    onClick={() => goTo('/sermons')}
                                     className="w-full flex items-center gap-3 p-3 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-xl transition-colors"
                                 >
                                     <BookOpen className="w-5 h-5 text-gray-400" />
@@ -175,7 +182,7 @@ export const Home = () => {
 
                         {(isAdmin() || isLeader() || isYouthLiderazgo() || isYouthNoAsistencia()) && (
                             <button
-                                onClick={() => navigate('/notifications')}
+                                onClick={() => goTo('/notifications')}
                                 className="w-full flex items-center gap-3 p-3 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-xl transition-colors"
                             >
                                 <Bell className="w-5 h-5 text-gray-400" />
@@ -185,7 +192,7 @@ export const Home = () => {
 
                         {(isAdmin() || isTreasurer()) && (
                             <button
-                                onClick={() => navigate('/treasury')}
+                                onClick={() => goTo('/treasury')}
                                 className="w-full flex items-center gap-3 p-3 text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-xl transition-colors"
                             >
                                 <DollarSign className="w-5 h-5 text-amber-500" />
@@ -257,18 +264,18 @@ export const Home = () => {
 
                         {isAdmin() && (
                             <button
-                                onClick={() => navigate('/admin')}
-                                className="flex items-center gap-2 px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                                onClick={() => goTo('/admin')}
+                                className="flex items-center gap-2 px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors"
                                 title="Administración"
                             >
                                 <Shield className="w-5 h-5" />
-                                <span className="hidden sm:inline text-sm font-medium">Admin</span>
+                                <span className="hidden lg:inline text-sm font-medium">Admin</span>
                             </button>
                         )}
 
                         <button
-                            onClick={() => navigate('/add-member')}
-                            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm shadow-blue-200"
+                            onClick={() => goTo('/add-member')}
+                            className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm shadow-blue-200"
                         >
                             <Plus className="w-5 h-5" />
                             <span className="hidden sm:inline text-sm font-bold">Nuevo Miembro</span>

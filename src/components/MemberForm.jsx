@@ -151,123 +151,145 @@ export const MemberForm = ({ initialData = {}, onSubmit, onCancel, loading = fal
     return (
         <form onSubmit={handleSubmit} className="space-y-6">
             {/* Foto */}
-            <div className="flex flex-col items-center">
-                <span className="text-sm font-semibold text-gray-500 mb-2">Foto</span>
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6">
+                <div className="flex flex-col items-center gap-3 flex-shrink-0">
+                    <span className="text-sm font-semibold text-gray-500">Foto del Miembro</span>
 
-                {!showCamera ? (
-                    <>
-                        <div className="relative group">
-                            {formData.foto ? (
-                                <img src={formData.foto} alt="Preview" className="w-32 h-32 rounded-xl object-cover border-2 border-gray-200" />
-                            ) : (
-                                <div className="w-32 h-32 rounded-xl bg-gray-50 border-2 border-dashed border-blue-500 flex flex-col items-center justify-center">
-                                    <ImageIcon className="w-8 h-8 text-blue-500 mb-1" />
-                                    <span className="text-xs text-gray-500">Sin foto</span>
-                                </div>
-                            )}
+                    {!showCamera ? (
+                        <>
+                            <div className="relative group">
+                                {formData.foto ? (
+                                    <img src={formData.foto} alt="Preview" className="w-28 h-28 rounded-2xl object-cover border-2 border-gray-200 shadow-md" />
+                                ) : (
+                                    <div className="w-28 h-28 rounded-2xl bg-gray-50 border-2 border-dashed border-blue-400 flex flex-col items-center justify-center">
+                                        <ImageIcon className="w-8 h-8 text-blue-400 mb-1" />
+                                        <span className="text-xs text-gray-400">Sin foto</span>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="flex gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => fileInputRef.current?.click()}
+                                    className="px-3 py-2 bg-blue-50 text-blue-600 rounded-lg text-xs font-medium hover:bg-blue-100 transition-colors flex items-center gap-1.5"
+                                >
+                                    <ImageIcon className="w-3.5 h-3.5" />
+                                    Galería
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={startCamera}
+                                    className="px-3 py-2 bg-purple-50 text-purple-600 rounded-lg text-xs font-medium hover:bg-purple-100 transition-colors flex items-center gap-1.5"
+                                >
+                                    <Camera className="w-3.5 h-3.5" />
+                                    Cámara
+                                </button>
+                            </div>
+
+                            <input
+                                type="file"
+                                ref={fileInputRef}
+                                onChange={handleImageUpload}
+                                accept="image/*"
+                                className="hidden"
+                            />
+                        </>
+                    ) : (
+                        <div className="relative w-full">
+                            <video
+                                ref={videoRef}
+                                autoPlay
+                                playsInline
+                                className="w-full max-w-xs rounded-xl object-cover border-2 border-blue-500"
+                            />
+                            <canvas ref={canvasRef} className="hidden" />
+
+                            <div className="flex gap-2 mt-3 justify-center">
+                                <button
+                                    type="button"
+                                    onClick={capturePhoto}
+                                    className="px-5 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors flex items-center gap-2"
+                                >
+                                    <Camera className="w-4 h-4" />
+                                    Capturar
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={stopCamera}
+                                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors flex items-center gap-2"
+                                >
+                                    <X className="w-4 h-4" />
+                                    Cancelar
+                                </button>
+                            </div>
                         </div>
+                    )}
+                </div>
 
-                        <div className="flex gap-2 mt-3">
+                {/* Género al lado de la foto en tablet+ */}
+                <div className="hidden sm:flex flex-col justify-center flex-1">
+                    <label className="block text-sm font-semibold text-gray-500 mb-2">Género *</label>
+                    <div className="flex flex-col gap-2">
+                        {['Masculino', 'Femenino', 'Otro'].map((genero) => (
                             <button
                                 type="button"
-                                onClick={() => fileInputRef.current?.click()}
-                                className="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg text-sm font-medium hover:bg-blue-100 transition-colors flex items-center gap-2"
+                                key={genero}
+                                onClick={() => updateField('genero', genero)}
+                                className={`py-2.5 px-4 rounded-lg border-2 text-sm text-left transition-all ${formData.genero === genero
+                                    ? 'border-blue-600 bg-blue-50 text-blue-700 font-bold'
+                                    : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
+                                    }`}
                             >
-                                <ImageIcon className="w-4 h-4" />
-                                Galería
+                                {genero}
                             </button>
-                            <button
-                                type="button"
-                                onClick={startCamera}
-                                className="px-4 py-2 bg-purple-50 text-purple-600 rounded-lg text-sm font-medium hover:bg-purple-100 transition-colors flex items-center gap-2"
-                            >
-                                <Camera className="w-4 h-4" />
-                                Cámara
-                            </button>
-                        </div>
-
-                        <input
-                            type="file"
-                            ref={fileInputRef}
-                            onChange={handleImageUpload}
-                            accept="image/*"
-                            className="hidden"
-                        />
-                    </>
-                ) : (
-                    <div className="relative">
-                        <video
-                            ref={videoRef}
-                            autoPlay
-                            playsInline
-                            className="w-80 h-80 rounded-xl object-cover border-2 border-blue-500"
-                        />
-                        <canvas ref={canvasRef} className="hidden" />
-
-                        <div className="flex gap-2 mt-3 justify-center">
-                            <button
-                                type="button"
-                                onClick={capturePhoto}
-                                className="px-6 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors flex items-center gap-2"
-                            >
-                                <Camera className="w-4 h-4" />
-                                Capturar
-                            </button>
-                            <button
-                                type="button"
-                                onClick={stopCamera}
-                                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors flex items-center gap-2"
-                            >
-                                <X className="w-4 h-4" />
-                                Cancelar
-                            </button>
-                        </div>
+                        ))}
                     </div>
-                )}
+                </div>
             </div>
 
-            {/* Campos de texto */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Campos de texto — 1 col móvil / 2 col tablet / 3 col desktop */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                 <div>
-                    <label className="block text-sm font-semibold text-gray-500 mb-1">Nombre *</label>
+                    <label className="block text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1">Nombre *</label>
                     <input
                         type="text"
                         value={formData.nombre}
                         onChange={(e) => updateField('nombre', e.target.value)}
-                        className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
-                        placeholder="Ingresa el nombre"
+                        className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                        placeholder="Nombre"
                     />
                 </div>
                 <div>
-                    <label className="block text-sm font-semibold text-gray-500 mb-1">Apellido Paterno *</label>
+                    <label className="block text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1">Apellido Paterno *</label>
                     <input
                         type="text"
                         value={formData.apellido_paterno}
                         onChange={(e) => updateField('apellido_paterno', e.target.value)}
-                        className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
-                        placeholder="Ingresa el apellido"
+                        className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                        placeholder="Apellido paterno"
                     />
                 </div>
-                <div>
-                    <label className="block text-sm font-semibold text-gray-500 mb-1">Apellido Materno *</label>
+                <div className="sm:col-span-2 md:col-span-1">
+                    <label className="block text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1">Apellido Materno *</label>
                     <input
                         type="text"
                         value={formData.apellido_materno}
                         onChange={(e) => updateField('apellido_materno', e.target.value)}
-                        className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
-                        placeholder="Ingresa el apellido"
+                        className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                        placeholder="Apellido materno"
                     />
                 </div>
             </div>
 
-            {/* Cumpleaños */}
-            <div className="flex flex-row gap-4">
-                <div className="w-1/3">
-                    <label className="block text-sm font-semibold text-gray-500 mb-1">Día *</label>
+            {/* Cumpleaños + Teléfono en grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                <div>
+                    <label className="block text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1">Día *</label>
                     <select
                         value={formData.dia_cumpleanos}
                         onChange={(e) => updateField('dia_cumpleanos', e.target.value)}
-                        className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all bg-white"
+                        className="w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all bg-white"
                     >
                         <option value="">Día</option>
                         {Array.from({ length: 31 }, (_, i) => i + 1).map(day => (
@@ -275,12 +297,12 @@ export const MemberForm = ({ initialData = {}, onSubmit, onCancel, loading = fal
                         ))}
                     </select>
                 </div>
-                <div className="flex-1">
-                    <label className="block text-sm font-semibold text-gray-500 mb-1">Mes *</label>
+                <div>
+                    <label className="block text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1">Mes *</label>
                     <select
                         value={formData.mes_cumpleanos}
                         onChange={(e) => updateField('mes_cumpleanos', parseInt(e.target.value))}
-                        className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all bg-white"
+                        className="w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all bg-white"
                     >
                         {MESES.map((mes) => (
                             <option key={mes.value} value={mes.value}>
@@ -289,30 +311,28 @@ export const MemberForm = ({ initialData = {}, onSubmit, onCancel, loading = fal
                         ))}
                     </select>
                 </div>
+                <div className="col-span-2 sm:col-span-1">
+                    <label className="block text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1">Teléfono</label>
+                    <input
+                        type="tel"
+                        value={formData.telefono}
+                        onChange={(e) => updateField('telefono', e.target.value)}
+                        className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                        placeholder="Ej: 5551234567"
+                    />
+                </div>
             </div>
 
-            {/* Teléfono */}
-            <div>
-                <label className="block text-sm font-semibold text-gray-500 mb-1">Teléfono</label>
-                <input
-                    type="tel"
-                    value={formData.telefono}
-                    onChange={(e) => updateField('telefono', e.target.value)}
-                    className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
-                    placeholder="Ej: 5551234567"
-                />
-            </div>
-
-            {/* Género */}
-            <div>
+            {/* Género — solo visible en móvil (en tablet ya aparece al lado de la foto) */}
+            <div className="sm:hidden">
                 <label className="block text-sm font-semibold text-gray-500 mb-2">Género *</label>
-                <div className="flex flex-row gap-4">
+                <div className="flex flex-row gap-2">
                     {['Masculino', 'Femenino', 'Otro'].map((genero) => (
                         <button
                             type="button"
                             key={genero}
                             onClick={() => updateField('genero', genero)}
-                            className={`flex-1 py-3 rounded-lg border-2 transition-all ${formData.genero === genero
+                            className={`flex-1 py-2.5 rounded-lg border-2 text-sm transition-all ${formData.genero === genero
                                 ? 'border-blue-600 bg-blue-50 text-blue-700 font-bold'
                                 : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
                                 }`}
